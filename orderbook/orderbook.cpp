@@ -1,6 +1,6 @@
 #include "orderbook.hpp"
 
-OrderBook::OrderBook(std::string& instrument, std::string& order_db_path, std::string& trade_db_path): _instrument{instrument}, _order_repository{std::make_unique<OrderRepository>(order_db_path)}, _trade_repository{std::make_unique<TradeRepository>(trade_db_path,1)}{}
+OrderBook::OrderBook(std::string&& instrument, std::string&& order_db_path, std::string&& trade_db_path): _instrument{instrument}, _order_repository{std::make_unique<OrderRepository>(order_db_path)}, _trade_repository{std::make_unique<TradeRepository>(trade_db_path,1)}{}
 
 std::uint64_t OrderBook::size(){
     return _orders.size();
@@ -9,9 +9,9 @@ std::uint64_t OrderBook::size(){
 void OrderBook::add_order(std::shared_ptr<Order>& order){
     bool is_buy = order->is_buy();
     if(order->has_param(OrderParams::STOP)){
-        if((is_buy && _market_price < order->get_price()) || (!is_buy && _market_price > order->get_price())){
-            return;
-        }
+        // if((is_buy && _market_price < order->get_price()) || (!is_buy && _market_price > order->get_price())){
+        //     return;
+        // }
         add_stop_order(order, is_buy ? _bid_stop_orders : _ask_stop_orders);
     }else{
         bool matched = match_order(order, is_buy ? _ask_limits : _bid_limits);
@@ -257,8 +257,6 @@ std::vector<std::shared_ptr<Order>> OrderBook::get_bid_stop_orders(){
 
     for(auto& order : _bid_stop_orders){
         bid_stop_orders.push_back(order);
-        order = order->_next;
-    
     }
 
     return bid_stop_orders;
@@ -268,9 +266,7 @@ std::vector<std::shared_ptr<Order>> OrderBook::get_ask_stop_orders(){
     std::vector<std::shared_ptr<Order>>ask_stop_orders{};
 
     for(auto& order : _ask_stop_orders){
-        ask_stop_orders.push_back(order);
-        order = order->_next;
-    
+        ask_stop_orders.push_back(order);    
     }
 
     return ask_stop_orders;

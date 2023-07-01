@@ -17,29 +17,31 @@ struct Spread{
 
 class OrderBook final{
 
-    OrderBook(std::string& instrument, std::string& order_db_path, std::string& trade_db_path);
+    public:
 
-    Spread get_spread();
+        OrderBook(std::string&& instrument, std::string&& order_db_path, std::string&& trade_db_path);
 
-    std::vector<std::shared_ptr<Order>> get_bids();
+        Spread get_spread();
 
-    std::vector<std::shared_ptr<Order>> get_asks();
+        std::vector<std::shared_ptr<Order>> get_bids();
 
-    std::vector<std::shared_ptr<Order>> get_bid_stop_orders();
+        std::vector<std::shared_ptr<Order>> get_asks();
 
-    std::vector<std::shared_ptr<Order>> get_ask_stop_orders();
+        std::vector<std::shared_ptr<Order>> get_bid_stop_orders();
 
-    float get_market_price();
+        std::vector<std::shared_ptr<Order>> get_ask_stop_orders();
 
-    std::string& get_instrument();
+        float get_market_price();
 
-    void add_order(std::shared_ptr<Order>& order);
+        std::string& get_instrument();
 
-    void cancel_order(std::string& order_id);
+        void add_order(std::shared_ptr<Order>& order);
 
-    void modify_order(std::shared_ptr<Order>& order);
+        void cancel_order(std::string& order_id);
 
-    uint64_t size();
+        void modify_order(std::shared_ptr<Order>& order);
+
+        uint64_t size();
 
     private:
         void add_limit_order(std::shared_ptr<Order>& order, std::shared_ptr<Limit>& limit, RBTree<std::shared_ptr<Limit>>& limits);

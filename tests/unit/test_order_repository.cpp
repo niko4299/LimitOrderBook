@@ -13,7 +13,7 @@ class OrderRepositoryFixture : public testing::Test {
     std::filesystem::remove_all(std::filesystem::path(db_file_path));
   }
 
-  std::string db_file_path = "./db_path";
+  std::string db_file_path = "./db_path_test";
   std::unique_ptr<OrderRepository> _order_repository;
 };
 

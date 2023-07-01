@@ -21,3 +21,7 @@ target_link_libraries(test_limit data_structures gtest gmock Boost::serializatio
 add_executable(test_order_repository test_order_repository.cpp)
 add_test(${test_prefix}test_order_repository test_order_repository)
 target_link_libraries(test_order_repository repository rocksdb data_structures gtest gmock Boost::serialization)
+
+add_executable(test_orderbook test_orderbook.cpp)
+add_test(${test_prefix}test_orderbook test_orderbook)
+target_link_libraries(test_orderbook orderbook repository rocksdb data_structures gtest gmock Boost::serialization)
