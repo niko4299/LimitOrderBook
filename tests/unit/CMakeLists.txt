@@ -8,7 +8,7 @@ find_package(Boost 1.74.0 COMPONENTS system filesystem serialization REQUIRED)
 
 add_executable(test_rbtree test_rbtree.cpp)
 add_test(${test_prefix}test_rbtree test_rbtree)
-target_link_libraries(test_rbtree data_structures gtest gmock)
+target_link_libraries(test_rbtree storage gtest gmock)
 
 add_executable(test_order test_order.cpp)
 add_test(${test_prefix}test_order test_order)

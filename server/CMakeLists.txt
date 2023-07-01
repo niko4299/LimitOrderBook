@@ -3,4 +3,4 @@ websocket_server.cpp
 websocket_client.cpp
 )
 
-add_library(server SHARED ${repository_source_files})
+add_library(server STATIC ${repository_source_files})

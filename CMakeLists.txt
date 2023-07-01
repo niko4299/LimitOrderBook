@@ -17,7 +17,7 @@ include(FetchContent)
 include(ExternalProject)
 find_package(Boost 1.74.0 COMPONENTS system filesystem serialization REQUIRED)
 
-enable_testing()
+add_subdirectory(storage)
 add_subdirectory(data_structures)
 add_subdirectory(orderbook)
 add_subdirectory(repository)
@@ -33,6 +33,8 @@ ExternalProject_Add(
     GIT_TAG v8.1.1
 )
 
+enable_testing()
+
 set(ROCKSDB_INCLUDE_DIR ${ROCKSDB_ROOT}/src/rocksdb/include)
 
 FetchContent_Declare(
@@ -45,4 +47,4 @@ FetchContent_MakeAvailable(googletest)
 include_directories(ROCKSDB_INCLUDE_DIR)
 add_executable(LimitOrderBook main.cpp)
 add_dependencies(LimitOrderBook rocksdb)
-target_link_libraries(LimitOrderBook PUBLIC data_structures repository orderbook server Boost::boost dl)
+target_link_libraries(LimitOrderBook PUBLIC storage data_structures repository orderbook server Boost::boost dl)
