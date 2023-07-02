@@ -1,6 +1,6 @@
 #include "orderbook.hpp"
 
-OrderBook::OrderBook(std::string&& instrument, std::string&& order_db_path, std::string&& trade_db_path): _instrument{instrument}, _order_repository{std::make_unique<OrderRepository>(order_db_path)}, _trade_repository{std::make_unique<TradeRepository>(trade_db_path,1)}{}
+OrderBook::OrderBook(std::string&& instrument,float market_price, std::string&& order_db_path, std::string&& trade_db_path): _instrument{instrument},_market_price{market_price}, _order_repository{std::make_unique<OrderRepository>(order_db_path)}, _trade_repository{std::make_unique<TradeRepository>(trade_db_path,1)}{}
 
 std::uint64_t OrderBook::size(){
     return _orders.size();
@@ -9,24 +9,28 @@ std::uint64_t OrderBook::size(){
 void OrderBook::add_order(std::shared_ptr<Order>& order){
     bool is_buy = order->is_buy();
     if(order->has_param(OrderParams::STOP)){
-        // if((is_buy && _market_price < order->get_price()) || (!is_buy && _market_price > order->get_price())){
-        //     return;
-        // }
-        add_stop_order(order, is_buy ? _bid_stop_orders : _ask_stop_orders);
-    }else{
-        bool matched = match_order(order, is_buy ? _ask_limits : _bid_limits);
-        if(matched){
-            _order_repository->save(order);
+
+        // If buy and market price is gte or is sell and market price is lte then add stop order
+        // otherwise process immediately.
+        if((is_buy && _market_price >= order->get_price()) || (!is_buy && _market_price <= order->get_price())){
+            add_stop_order(order, is_buy ? _bid_stop_orders : _ask_stop_orders);
             return;
         }
-
-        if(order->has_param(OrderParams::FOK)) {
-		    order->cancel();                                
-        }else {
-            auto limit = std::make_shared<Limit>(order->get_price());
-            add_limit_order(order,limit, is_buy ? _bid_limits : _ask_limits);
-        }
     }
+    
+    bool matched = match_order(order, is_buy ? _ask_limits : _bid_limits);
+    if(matched){
+        _order_repository->save(order);
+        return;
+    }
+
+    if(order->has_param(OrderParams::FOK)) {
+        order->cancel();                                
+    }else {
+        auto limit = std::make_shared<Limit>(order->get_price());
+        add_limit_order(order,limit, is_buy ? _bid_limits : _ask_limits);
+    }
+    
 
     if(!order->is_cancelled()){
         _orders[order->get_id()] = order;
@@ -254,9 +258,9 @@ std::vector<std::shared_ptr<Order>> OrderBook::get_asks(){
 
 std::vector<std::shared_ptr<Order>> OrderBook::get_bid_stop_orders(){
     std::vector<std::shared_ptr<Order>> bid_stop_orders{};
-
-    for(auto& order : _bid_stop_orders){
-        bid_stop_orders.push_back(order);
+    
+    for(auto it = _bid_stop_orders.begin(); it.valid(); it++){
+        bid_stop_orders.push_back(*it);    
     }
 
     return bid_stop_orders;
@@ -265,8 +269,8 @@ std::vector<std::shared_ptr<Order>> OrderBook::get_bid_stop_orders(){
 std::vector<std::shared_ptr<Order>> OrderBook::get_ask_stop_orders(){
     std::vector<std::shared_ptr<Order>>ask_stop_orders{};
 
-    for(auto& order : _ask_stop_orders){
-        ask_stop_orders.push_back(order);    
+    for(auto it = _ask_stop_orders.begin(); it.valid();it++){
+        ask_stop_orders.push_back(*it);    
     }
 
     return ask_stop_orders;

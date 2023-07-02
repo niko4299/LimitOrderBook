@@ -19,7 +19,7 @@ class OrderBook final{
 
     public:
 
-        OrderBook(std::string&& instrument, std::string&& order_db_path, std::string&& trade_db_path);
+        OrderBook(std::string&& instrument,float market_price, std::string&& order_db_path, std::string&& trade_db_path);
 
         Spread get_spread();
 

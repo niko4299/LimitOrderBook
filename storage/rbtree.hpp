@@ -184,7 +184,7 @@ class RBTree{
 
      const Node<T>* get_root() noexcept{
         if(_root == _nil){
-            return nullptr;
+            return _nil;
         }else{
             return _root;
         }
@@ -220,7 +220,7 @@ class RBTree{
      }
 
       void insert(const T& value){
-        Node<T>* parent = nullptr;
+        Node<T>* parent = _nil;
         Node<T>* current = _root;
 
         while (current != _nil) {
@@ -233,7 +233,7 @@ class RBTree{
         }
         
         auto new_node = new Node(value,false,parent,_nil,_nil);
-        if (parent == nullptr) {
+        if (parent == _nil) {
             _root = new_node;
             _first = new_node;
             _last = new_node;
@@ -278,7 +278,7 @@ class RBTree{
         }
 
         auto successor_node = node->parent;
-        while(successor_node != _nil && node == successor_node->right){
+        while(successor_node && successor_node != _nil && node == successor_node->right){
             node = successor_node;
             successor_node = successor_node->parent;
         }
@@ -402,7 +402,7 @@ class RBTree{
 		}
 
 		child_left->parent = node->parent;
-		if (node->parent == nullptr) {
+		if (node->parent == _nil) {
 			_root = child_left;
 		} else if (node == node->parent->right) {
 			node->parent->right = child_left;
@@ -423,7 +423,7 @@ class RBTree{
 		}
 
 		child_right->parent = node->parent;
-		if (node->parent == nullptr) {
+		if (node->parent == _nil) {
 			_root = child_right;
 		} else if (node == node->parent->left) {
 			node->parent->left = child_right;
@@ -436,7 +436,7 @@ class RBTree{
     }
     
     constexpr void transplant(Node<T>* u, Node<T>* v) noexcept {
-        if(u->parent == nullptr){
+        if(u->parent == _nil){
             _root = v;
         }else if (u == u->parent->left){
             u->parent->left = v;
@@ -465,7 +465,7 @@ class RBTree{
 
 
         auto original_color = node->is_black;
-        Node<T>* fix_node = nullptr;
+        Node<T>* fix_node = _nil;
         if(node->left == _nil){
             fix_node = node->right;
             transplant(node,node->right);
@@ -510,7 +510,7 @@ class RBTree{
      }
 
     constexpr void rebalance_insert(Node<T>* node) noexcept {
-		Node<T>* u = nullptr;
+		Node<T>* u = _nil;
 		while (node != _root && !node->parent->is_black) {
 			if (node->parent == node->parent->parent->right) {
 				u = node->parent->parent->left;
