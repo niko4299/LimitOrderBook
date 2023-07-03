@@ -11,7 +11,7 @@
 class OrderFixture : public testing::Test {
  protected:
   virtual void SetUp() {
-    order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,Side::BUY, OrderParams::STOP, OrderType::LIMIT);
+    order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY, OrderParams::STOP, OrderType::LIMIT);
   }
 
   std::shared_ptr<Order> order;

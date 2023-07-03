@@ -22,13 +22,17 @@ class Order final {
     public:
         Order() = default;
 
-        Order(std::string id, std::string instrument, std::string user_id, float qty,float price, Side side, OrderParams params, OrderType type);
+        Order(std::string id, std::string instrument, std::string user_id, float qty, float price, Side side, OrderParams params, OrderType type);
+
+        Order(std::string id, std::string instrument, std::string user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type);
         
         ~Order() = default;
 
         std::string& get_id();
 
         float get_price();
+
+        float get_stop_price();
 
         void set_price(float price);
 
@@ -86,6 +90,8 @@ class Order final {
         float _qty;
         float _current_qty;
         float _price;
+        // used only in stop orders.
+        float _stop_price;
         Side _side;
         bool _cancelled{false};
         OrderParams _params;

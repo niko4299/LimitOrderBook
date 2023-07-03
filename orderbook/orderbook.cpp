@@ -7,20 +7,26 @@ std::uint64_t OrderBook::size(){
 }
 
 void OrderBook::add_order(std::shared_ptr<Order>& order){
+    _order_repository->save(order);
     bool is_buy = order->is_buy();
+
     if(order->has_param(OrderParams::STOP)){
 
         // If buy and market price is gte or is sell and market price is lte then add stop order
         // otherwise process immediately.
-        if((is_buy && _market_price >= order->get_price()) || (!is_buy && _market_price <= order->get_price())){
+        if((is_buy && _market_price > order->get_stop_price()) || (!is_buy && _market_price < order->get_stop_price())){
             add_stop_order(order, is_buy ? _bid_stop_orders : _ask_stop_orders);
             return;
         }
+
+        if(order->get_type() == OrderType::MARKET){
+            order->set_params(OrderParams::IOC);
+        }
+
     }
     
     bool matched = match_order(order, is_buy ? _ask_limits : _bid_limits);
     if(matched){
-        _order_repository->save(order);
         return;
     }
 
@@ -35,8 +41,6 @@ void OrderBook::add_order(std::shared_ptr<Order>& order){
     if(!order->is_cancelled()){
         _orders[order->get_id()] = order;
     }
-
-    _order_repository->save(order);
 }
 
 void OrderBook::add_limit_order(std::shared_ptr<Order>& order, std::shared_ptr<Limit>& limit, RBTree<std::shared_ptr<Limit>>& limits){
@@ -231,8 +235,8 @@ void OrderBook::remove_stop_order(std::shared_ptr<Order>& stop_order){
 std::vector<std::shared_ptr<Order>> OrderBook::get_bids(){
     std::vector<std::shared_ptr<Order>> bid_orders{};
 
-    for(auto& limit : _bid_limits){
-        auto order = limit->_head;
+    for(auto it = _bid_limits.begin(); it.valid(); it++){
+        auto order = (*it)->_head;
         while(order){
             bid_orders.push_back(order);
             order = order->_next;
@@ -245,8 +249,8 @@ std::vector<std::shared_ptr<Order>> OrderBook::get_bids(){
 std::vector<std::shared_ptr<Order>> OrderBook::get_asks(){
     std::vector<std::shared_ptr<Order>>ask_orders{};
 
-    for(auto& limit : _ask_limits){
-        auto order = limit->_head;
+    for(auto it = _ask_limits.begin(); it.valid(); it++){
+        auto order = (*it)->_head;
         while(order){
             ask_orders.push_back(order);
             order = order->_next;
@@ -287,7 +291,7 @@ void OrderBook::add_bid_stop_orders_below(float price) {
 
     for (auto it = _bid_stop_orders.rbegin(); it.valid(); it++) {
         auto& order = *it;
-        if (order->get_price() <= price) {
+        if (order->get_stop_price() <= price) {
             add_order(order);
             orders_to_remove.push_back(order);
         } else {
@@ -303,7 +307,7 @@ void OrderBook::add_bid_stop_orders_below(float price) {
 void OrderBook::add_ask_stop_orders_above(float price) {
     auto& bottom_ask_order = _ask_stop_orders.first();
 
-    if (!bottom_ask_order.has_value() || bottom_ask_order.value()->get_price() < price) {
+    if (!bottom_ask_order.has_value() || bottom_ask_order.value()->get_stop_price() < price) {
         return;
     }
 
@@ -311,7 +315,7 @@ void OrderBook::add_ask_stop_orders_above(float price) {
 
     for (auto it = _ask_stop_orders.begin(); it.valid(); it++) {
         auto& order = *it;
-        if (order->get_price() >= price) {
+        if (order->get_stop_price() >= price) {
             add_order(order);
             orders_to_remove.push_back(order);
         } else {

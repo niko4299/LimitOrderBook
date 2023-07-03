@@ -18,7 +18,7 @@ class OrderRepositoryFixture : public testing::Test {
 };
 
 TEST_F(OrderRepositoryFixture, TestSave){
-  auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
+  auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
 
   auto saved = _order_repository->save(order);
 
@@ -27,7 +27,7 @@ TEST_F(OrderRepositoryFixture, TestSave){
 
 TEST_F(OrderRepositoryFixture, TestGet){
   std::string order_id = "order_id";
-  auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
+  auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
   auto saved = _order_repository->save(order);
   ASSERT_TRUE(saved);
 

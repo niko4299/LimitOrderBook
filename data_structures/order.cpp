@@ -1,7 +1,11 @@
 #include "order.hpp"
 #include "limit.hpp"
 
-Order::Order(std::string id,std::string instrument, std::string user_id, float qty,float price, Side side, OrderParams params, OrderType type): _id{id},_instrument{instrument},_user_id{user_id},_timestamp{time(0)},_qty{qty},_current_qty{qty},_price{price}, _side{side}, _params{params}, _type{type} {}
+
+Order::Order(std::string id, std::string instrument, std::string user_id, float qty, float price, Side side, OrderParams params, OrderType type): _id{id},_instrument{instrument},_user_id{user_id},_timestamp{time(0)},_qty{qty},_current_qty{qty}, _price{price}, _side{side}, _params{params}, _type{type} {}
+
+// Used for stop orders
+Order::Order(std::string id, std::string instrument, std::string user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type): _id{id},_instrument{instrument},_user_id{user_id},_timestamp{time(0)},_qty{qty},_current_qty{qty}, _price{price}, _stop_price{stop_price}, _side{side}, _params{params}, _type{type} {}
             
 std::string& Order::get_id(){
     return _id;
@@ -9,6 +13,10 @@ std::string& Order::get_id(){
 
 float Order::get_price(){
     return _price;
+}
+
+float Order::get_stop_price(){
+    return _stop_price;
 }
 
 void Order::set_price(float price){

@@ -9,7 +9,7 @@ class LimitFixture : public testing::Test {
  
   virtual void SetUp() {
     limit = std::make_shared<Limit>(1000.0);
-    order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
+    order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
   }
 
   std::shared_ptr<Limit> limit;

@@ -60,9 +60,8 @@ class OrderBook final{
 
         void add_ask_stop_orders_above(float price);
 
-
-        float _market_price;
         std::string _instrument;
+        float _market_price;
         RBTree<std::shared_ptr<Limit>> _ask_limits{};
         RBTree<std::shared_ptr<Limit>> _bid_limits{};
         RBTree<std::shared_ptr<Order>> _ask_stop_orders{};
