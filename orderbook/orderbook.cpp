@@ -1,144 +1,167 @@
 #include "orderbook.hpp"
 
-OrderBook::OrderBook(std::string&& instrument,float market_price, std::string&& order_db_path, std::string&& trade_db_path): _instrument{instrument},_market_price{market_price}, _order_repository{std::make_unique<OrderRepository>(order_db_path)}, _trade_repository{std::make_unique<TradeRepository>(trade_db_path,1)}{}
+OrderBook::OrderBook(std::string&& instrument, float market_price, std::string&& order_db_path, std::string&& trade_db_path)
+    : _instrument{instrument}
+    , _market_price{market_price}
+    , _order_repository{std::make_unique<OrderRepository>(order_db_path)}
+    , _trade_repository{std::make_unique<TradeRepository>(trade_db_path, 1)} {}
 
-std::uint64_t OrderBook::size(){
+std::uint64_t OrderBook::size() {
     return _orders.size();
 }
 
-void OrderBook::add_order(std::shared_ptr<Order>& order){
+void OrderBook::add_order(std::shared_ptr<Order>& order) {
     _order_repository->save(order);
     bool is_buy = order->is_buy();
 
-    if(order->has_param(OrderParams::STOP)){
+    if (order->has_param(OrderParams::STOP)) {
 
         // If buy and market price is gte or is sell and market price is lte then add stop order
         // otherwise process immediately.
-        if((is_buy && _market_price > order->get_stop_price()) || (!is_buy && _market_price < order->get_stop_price())){
+        if ((is_buy && _market_price > order->get_stop_price()) || (!is_buy && _market_price < order->get_stop_price())) {
             add_stop_order(order, is_buy ? _bid_stop_orders : _ask_stop_orders);
             return;
         }
 
-        if(order->get_type() == OrderType::MARKET){
+        if (order->get_type() == OrderType::MARKET) {
             order->set_params(OrderParams::IOC);
         }
-
     }
-    
+
     bool matched = match_order(order, is_buy ? _ask_limits : _bid_limits);
-    if(matched){
+    if (matched) {
         return;
     }
 
-    if(order->has_param(OrderParams::FOK)) {
-        order->cancel();                                
-    }else {
+    if (order->has_param(OrderParams::FOK)) {
+        order->cancel();
+    } else {
         auto limit = std::make_shared<Limit>(order->get_price());
-        add_limit_order(order,limit, is_buy ? _bid_limits : _ask_limits);
+        add_limit_order(order, limit, is_buy ? _bid_limits : _ask_limits);
     }
-    
 
-    if(!order->is_cancelled()){
+    if (!order->is_cancelled()) {
         _orders[order->get_id()] = order;
     }
 }
 
-void OrderBook::add_limit_order(std::shared_ptr<Order>& order, std::shared_ptr<Limit>& limit, RBTree<std::shared_ptr<Limit>>& limits){
+void OrderBook::add_limit_order(std::shared_ptr<Order>& order, std::shared_ptr<Limit>& limit, RBTree<std::shared_ptr<Limit>>& limits) {
     auto& maybe_orderbook_limit = limits.find(limit);
-    if(maybe_orderbook_limit.has_value()){
+    if (maybe_orderbook_limit.has_value()) {
         auto orderbook_limit = *maybe_orderbook_limit;
         order->set_limit_parent(orderbook_limit);
 
-        if(!orderbook_limit->_head){
+        if (!orderbook_limit->_head) {
             orderbook_limit->_head = order;
             orderbook_limit->_tail = order;
-        }else{
+        } else {
             auto pom = orderbook_limit->_tail;
             pom->_next = order;
             order->_prev = pom;
             orderbook_limit->_tail = order;
         }
+        orderbook_limit->increase_volume(order->get_qty());
 
-    }else{
+    } else {
         limits.insert(limit);
         order->set_limit_parent(limit);
         limit->_head = order;
         limit->_tail = order;
+        limit->increase_volume(order->get_qty());
     }
 }
 
-void OrderBook::modify_order(std::shared_ptr<Order>& order){
+void OrderBook::modify_order(std::shared_ptr<Order>& order) {
     auto orderbook_entry = _orders.find(order->get_id());
-    if(orderbook_entry != _orders.end() && !orderbook_entry->second->is_cancelled() && !orderbook_entry->second->is_fullfilled()){
+    if (orderbook_entry != _orders.end() && !orderbook_entry->second->is_cancelled() && !orderbook_entry->second->is_fullfilled()) {
         orderbook_entry->second->cancel();
-        if(orderbook_entry->second->has_param(OrderParams::STOP)){
+        if (orderbook_entry->second->has_param(OrderParams::STOP)) {
             remove_stop_order(order);
             add_stop_order(order, order->is_buy() ? _bid_stop_orders : _ask_stop_orders);
-        }else{
+        } else {
             remove_limit_order(orderbook_entry->second);
-            add_limit_order(order,orderbook_entry->second->get_limit_parent(),order->is_buy() ? _bid_limits : _ask_limits);
+            add_limit_order(order, orderbook_entry->second->get_limit_parent(), order->is_buy() ? _bid_limits : _ask_limits);
         }
     }
 }
 
-void OrderBook::remove_limit_order(std::shared_ptr<Order>& orderbook_entry){
+void OrderBook::remove_limit_order(std::shared_ptr<Order>& orderbook_entry) {
     auto& parent_limit = orderbook_entry->get_limit_parent();
     parent_limit->decrease_volume(orderbook_entry->get_qty());
     parent_limit->decrease_number_of_orders();
 
-    if(orderbook_entry->_next && orderbook_entry->_prev){
+    if (orderbook_entry->_next && orderbook_entry->_prev) {
         orderbook_entry->_next->_prev = orderbook_entry->_prev;
         orderbook_entry->_prev->_next = orderbook_entry->_next;
-    }else if(orderbook_entry->_prev){
+    } else if (orderbook_entry->_prev) {
         orderbook_entry->_prev->_next = nullptr;
-    }else{
+    } else if (orderbook_entry->_next) {
         orderbook_entry->_next->_prev = nullptr;
     }
 
-    if(parent_limit->_head == orderbook_entry && parent_limit->_tail == orderbook_entry){
+    if (parent_limit->_head == orderbook_entry && parent_limit->_tail == orderbook_entry) {
         parent_limit->_head = parent_limit->_tail = nullptr;
-    }else if(parent_limit->_head == orderbook_entry){
+    } else if (parent_limit->_head == orderbook_entry) {
         parent_limit->_head = orderbook_entry->_next;
-    }else if(parent_limit->_tail == orderbook_entry){
+    } else if (parent_limit->_tail == orderbook_entry) {
         parent_limit->_tail = orderbook_entry->_prev;
     }
 
     _orders.erase(orderbook_entry->get_id());
 }
 
-//    std::string buyer_id;
-    // std::string seller_id;
-    // std::string buyer_order_id;
-    // std::string seller_order_id;
-    // std::string instrument;
-    // float volume;
-    // float price;
-    // std::time_t timestamp;
-
-bool OrderBook::match_order(std::shared_ptr<Order>& order,RBTree<std::shared_ptr<Limit>>& limits){
+bool OrderBook::match_order(std::shared_ptr<Order>& order, RBTree<std::shared_ptr<Limit>>& limits) {
     bool is_aon = order->has_param(OrderParams::AON);
+    bool is_buy = order->is_buy();
     auto order_qty = order->get_qty();
     auto order_type = order->get_type();
     float cross_price;
     std::vector<std::shared_ptr<Limit>> filled_limits;
-    for(auto& opposite_limit: limits){
 
-        if(is_aon && opposite_limit->get_active_volume() < order_qty){
+    for (auto it = limits.begin(); it.valid(); it++) {
+        auto& opposite_limit = *it;
+
+        if (is_aon && opposite_limit->get_active_volume() < order_qty) {
             continue;
+        }
+
+        switch (order_type) {
+        case OrderType::MARKET:
+            cross_price = opposite_limit->get_price();
+            break;
+        case OrderType::LIMIT:
+            if (is_buy) {
+                if (order->get_price() < opposite_limit->get_price()) {
+                    return false;
+                } else {
+                    cross_price = order->get_price();
+                }
+            } else {
+                if (order->get_price() > opposite_limit->get_price()) {
+                    return false;
+                } else {
+                    cross_price = opposite_limit->get_price();
+                }
+            }
+            break;
         }
 
         auto curr_order = opposite_limit->_head;
 
-        while(order_qty> 0 && curr_order){
+        while (order_qty > 0 && curr_order) {
             auto curr_order_qty = curr_order->get_qty();
 
-            if(order_qty == curr_order_qty){
+            if (order_qty == curr_order_qty) {
                 order_qty = 0;
+                curr_order->fill();
+                // TODO: consider adding to vector and then removing at the end
                 remove_limit_order(curr_order);
-            }else if(!is_aon && order_qty > curr_order_qty){
+            } else if (!is_aon && order_qty > curr_order_qty) {
                 order_qty -= curr_order_qty;
+                curr_order->fill();
+                // TODO: consider adding to vector and then removing at the end
                 remove_limit_order(curr_order);
-            }else{
+            } else {
                 curr_order->decrease_qty(order_qty);
                 opposite_limit->decrease_volume(order_qty);
                 order_qty = 0;
@@ -146,98 +169,74 @@ bool OrderBook::match_order(std::shared_ptr<Order>& order,RBTree<std::shared_ptr
             }
 
             curr_order = curr_order->_next;
-       }
-
-       opposite_limit->_head = curr_order;
-
-        switch (order_type){
-            case OrderType::MARKET:
-               cross_price = opposite_limit->get_price();
-            case OrderType::LIMIT:
-                if(order->is_buy()){
-                    if(order->get_price() < opposite_limit->get_price()){
-                        return false;
-                    }else{
-                        cross_price = order->get_price();
-                    }
-                }else{
-                    if(order->get_price() > opposite_limit->get_price()){
-                        return false;
-                    }else{
-                        cross_price = opposite_limit->get_price();
-                    }
-                }  
         }
 
-        if(opposite_limit->empty()){
-           filled_limits.push_back(opposite_limit);
+        if (opposite_limit->empty()) {
+            filled_limits.push_back(opposite_limit);
         }
 
-       set_market_price(cross_price);
-       
-       if(order_qty == 0){
-            order->fill();
+        set_market_price(cross_price);
+
+        if (order_qty == 0) {
             break;
-       }
+        }
     }
 
-    for(auto& limit: filled_limits){
-        limit->clear();
+    for (auto& limit : filled_limits) {
         limits.remove(limit);
     }
 
     return order_qty == 0;
 }
 
-
-Spread OrderBook::get_spread(){
+Spread OrderBook::get_spread() {
     auto& best_bid = _bid_limits.last();
     auto& best_ask = _ask_limits.first();
     float best_ask_price = -1;
     float best_bid_price = -1;
-    if(best_ask.has_value()){
+    if (best_ask.has_value()) {
         best_ask_price = best_ask.value()->get_price();
     }
 
-    if(best_bid.has_value()){
+    if (best_bid.has_value()) {
         best_bid_price = best_bid.value()->get_price();
     }
 
-    return {best_bid_price,best_ask_price, best_bid_price - best_ask_price};
+    return {best_bid_price, best_ask_price, best_ask_price - best_bid_price};
 }
 
-void OrderBook::cancel_order(std::string& order_id){
+void OrderBook::cancel_order(std::string&& order_id) {
     auto orderbook_entry = _orders.find(order_id);
-    if(orderbook_entry != _orders.end()){
+    if (orderbook_entry != _orders.end()) {
         orderbook_entry->second->cancel();
-        if(orderbook_entry->second->has_param(OrderParams::STOP)){
+        if (orderbook_entry->second->has_param(OrderParams::STOP)) {
             remove_stop_order(orderbook_entry->second);
-        }else{
+        } else {
             remove_limit_order(orderbook_entry->second);
         }
     }
 }
 
-void OrderBook::add_stop_order(std::shared_ptr<Order>& order, RBTree<std::shared_ptr<Order>>& orders){
+void OrderBook::add_stop_order(std::shared_ptr<Order>& order, RBTree<std::shared_ptr<Order>>& orders) {
     orders.insert(order);
 }
 
-void OrderBook::remove_stop_order(std::shared_ptr<Order>& stop_order){
-    if(stop_order->is_buy()){
+void OrderBook::remove_stop_order(std::shared_ptr<Order>& stop_order) {
+    if (stop_order->is_buy()) {
         _bid_stop_orders.remove(stop_order);
-    }else{
+    } else {
         _ask_stop_orders.remove(stop_order);
     }
 
     _orders.erase(stop_order->get_id());
 }
 
-std::vector<std::shared_ptr<Order>> OrderBook::get_bids(){
+std::vector<std::shared_ptr<Order>> OrderBook::get_bids() {
     std::vector<std::shared_ptr<Order>> bid_orders{};
 
-    for(auto it = _bid_limits.begin(); it.valid(); it++){
+    for (auto it = _bid_limits.begin(); it.valid(); it++) {
         auto order = (*it)->_head;
-        while(order){
+        while (order) {
             bid_orders.push_back(order);
             order = order->_next;
         }
@@ -246,12 +245,12 @@ std::vector<std::shared_ptr<Order>> OrderBook::get_bids(){
     return bid_orders;
 }
 
-std::vector<std::shared_ptr<Order>> OrderBook::get_asks(){
-    std::vector<std::shared_ptr<Order>>ask_orders{};
+std::vector<std::shared_ptr<Order>> OrderBook::get_asks() {
+    std::vector<std::shared_ptr<Order>> ask_orders{};
 
-    for(auto it = _ask_limits.begin(); it.valid(); it++){
+    for (auto it = _ask_limits.begin(); it.valid(); it++) {
         auto order = (*it)->_head;
-        while(order){
+        while (order) {
             ask_orders.push_back(order);
             order = order->_next;
         }
@@ -260,21 +259,21 @@ std::vector<std::shared_ptr<Order>> OrderBook::get_asks(){
     return ask_orders;
 }
 
-std::vector<std::shared_ptr<Order>> OrderBook::get_bid_stop_orders(){
+std::vector<std::shared_ptr<Order>> OrderBook::get_bid_stop_orders() {
     std::vector<std::shared_ptr<Order>> bid_stop_orders{};
-    
-    for(auto it = _bid_stop_orders.begin(); it.valid(); it++){
-        bid_stop_orders.push_back(*it);    
+
+    for (auto it = _bid_stop_orders.begin(); it.valid(); it++) {
+        bid_stop_orders.push_back(*it);
     }
 
     return bid_stop_orders;
 }
 
-std::vector<std::shared_ptr<Order>> OrderBook::get_ask_stop_orders(){
-    std::vector<std::shared_ptr<Order>>ask_stop_orders{};
+std::vector<std::shared_ptr<Order>> OrderBook::get_ask_stop_orders() {
+    std::vector<std::shared_ptr<Order>> ask_stop_orders{};
 
-    for(auto it = _ask_stop_orders.begin(); it.valid();it++){
-        ask_stop_orders.push_back(*it);    
+    for (auto it = _ask_stop_orders.begin(); it.valid(); it++) {
+        ask_stop_orders.push_back(*it);
     }
 
     return ask_stop_orders;
@@ -328,14 +327,14 @@ void OrderBook::add_ask_stop_orders_above(float price) {
     }
 }
 
-std::string& OrderBook::get_instrument(){
+std::string& OrderBook::get_instrument() {
     return _instrument;
 }
 
-float OrderBook::get_market_price(){
+float OrderBook::get_market_price() {
     return _market_price;
 }
 
-void OrderBook::set_market_price(float price){
+void OrderBook::set_market_price(float price) {
     _market_price = price;
 }

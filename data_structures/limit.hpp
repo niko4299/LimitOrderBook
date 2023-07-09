@@ -16,7 +16,7 @@
 
 class Order;
 
-class Limit final{
+class Limit final {
     public:
         Limit() = default;
 

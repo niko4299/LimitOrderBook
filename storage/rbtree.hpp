@@ -641,4 +641,4 @@ class RBTree{
      Node<T>* _first;
      Node<T>* _last;
      std::uint64_t _size;
-};
+     };

@@ -37,7 +37,7 @@ class OrderBook final{
 
         void add_order(std::shared_ptr<Order>& order);
 
-        void cancel_order(std::string& order_id);
+        void cancel_order(std::string&& order_id);
 
         void modify_order(std::shared_ptr<Order>& order);
 
