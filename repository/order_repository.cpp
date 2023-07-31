@@ -1,6 +1,6 @@
 #include "order_repository.hpp"
 
-OrderRepository::OrderRepository(std::string& db_path) {
+OrderRepository::OrderRepository(std::string& db_path, std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>, boost::lockfree::capacity<1024>>>& ring_buffer) {
     auto file_system_db_path = std::filesystem::path(db_path);
     if (!std::filesystem::is_directory(file_system_db_path)) {
         auto ok = std::filesystem::create_directory(file_system_db_path);
@@ -18,10 +18,22 @@ OrderRepository::OrderRepository(std::string& db_path) {
     if (!status.ok()) {
         throw std::runtime_error("Couldn't open connection with order repository database");
     }
+    _ring_buffer = ring_buffer;
 }
 
 OrderRepository::~OrderRepository() {
+    _done = true;
     delete _db;
+}
+
+void OrderRepository::process_message(){
+    std::shared_ptr<Order> order;
+    while(!_done){
+        while(_ring_buffer->pop(order)){
+            save(order);
+        }
+    }
+    
 }
 
 bool OrderRepository::save(std::shared_ptr<Order>& order) {
