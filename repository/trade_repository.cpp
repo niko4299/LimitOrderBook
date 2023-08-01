@@ -1,6 +1,6 @@
 #include "trade_repository.hpp"
 
-TradeRepository::TradeRepository(std::string& db_path, uint32_t batch_size) {
+TradeRepository::TradeRepository(std::string& db_path, uint32_t batch_size, std::shared_ptr<boost::lockfree::spsc_queue<Trade, boost::lockfree::capacity<1024UL>>>& ring_buffer) {
     auto file_system_db_path = std::filesystem::path(db_path);
     if (!std::filesystem::is_directory(file_system_db_path)) {
         auto ok = std::filesystem::create_directory(file_system_db_path);
@@ -20,6 +20,16 @@ TradeRepository::TradeRepository(std::string& db_path, uint32_t batch_size) {
     }
 
     _batch_size = batch_size;
+    _ring_buffer = ring_buffer;
+}
+
+void TradeRepository::process_message(){
+    Trade trade;
+    while(!_done){
+        while(_ring_buffer->pop(trade)){
+            save(trade);
+        }
+    } 
 }
 
 TradeRepository::~TradeRepository() {

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(LimitOrderBook)
+project(UnlimitedOrderBook)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -12,10 +12,11 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
+set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -pthread")
 
 include(FetchContent)
 include(ExternalProject)
-find_package(Boost 1.74.0 COMPONENTS system filesystem serialization REQUIRED)
+find_package(Boost 1.74.0 COMPONENTS system filesystem serialization thread REQUIRED)
 
 add_subdirectory(storage)
 add_subdirectory(data_structures)
@@ -45,6 +46,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 include_directories(ROCKSDB_INCLUDE_DIR)
-add_executable(LimitOrderBook main.cpp)
-add_dependencies(LimitOrderBook rocksdb)
-target_link_libraries(LimitOrderBook PUBLIC storage data_structures repository orderbook server Boost::boost dl)
+add_executable(UnlimitedOrderBook main.cpp)
+add_dependencies(UnlimitedOrderBook rocksdb)
+target_link_libraries(UnlimitedOrderBook PUBLIC storage data_structures repository orderbook server Boost::boost Boost::thread dl)

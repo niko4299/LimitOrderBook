@@ -1,104 +1,58 @@
-#include <cassert>
+#include <boost/thread/thread.hpp>
+#include <boost/lockfree/spsc_queue.hpp>
 #include <iostream>
-#include <memory>
-#include <utility>
-#include <numeric>
-#include <vector>
-#include <random>
-#include <set>
-#include <chrono>
-#include <algorithm>
+#include "data_structures/order.hpp"
 
-#include "storage/rbtree.hpp"
-#include "data_structures/limit.hpp"
+#include <boost/atomic.hpp>
 
-std::random_device rd;
-std::mt19937 g(rd());
+int producer_count = 0;
+boost::atomic_int consumer_count (0);
 
-class Fake {
-    public:
-        Fake(float price):price{price}{}
+boost::lockfree::spsc_queue<std::shared_ptr<Order>, boost::lockfree::capacity<1024> > spsc_queue;
 
-        float price{0};
+const int iterations = 10000000;
 
-    private:
-        bool operator>(const Fake& other){
-            return price > other.price;
-        }
+void producer(void)
+{
+    for (int i = 0; i != iterations; ++i) {
+        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5+i,1100.02,1100.02,Side::BUY, OrderParams::STOP, OrderType::LIMIT);
 
-};
-
-int main(){
-
-    auto x = std::make_shared<Fake>(100.1); 
-    auto y = std::make_shared<Fake>(100.2);
-
-    // auto s = std::make_shared<Limit>(100.1);
-    auto z = x < y; 
-    if(z){
-    std::cout<< "TU";
+        while (!spsc_queue.push(order))
+            ;
     }
-    // constexpr size_t SIZE = 100000;
-    // std::vector<int> v (SIZE);
-    // std::iota(v.begin(), v.end(), 1);
-    // std::shuffle(v.begin(), v.end(), g);
-    // RBTree<int> rbtree;
-    // auto t1 = std::chrono::steady_clock::now();
-    // for (auto n : v) {
-    //     rbtree.insert(n);
-    // }
-    // auto t2 = std::chrono::steady_clock::now();
-    // auto dt1 = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+}
 
-    // std::set<int> rbset;
-    // t1 = std::chrono::steady_clock::now();
-    // for (auto n : v) {
-    //     rbset.insert(n);
-    // }
-    // t2 = std::chrono::steady_clock::now();
-    // auto dt2 = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+boost::atomic<bool> done (false);
 
-    // std::cout << "Inserting " << SIZE << " elements:\n";
-    // std::cout << "my red-black tree : " << dt1.count() << " ms\n";
-    // std::cout << "standard red-black tree : " << dt2.count() << " ms\n";
+void consumer(void)
+{
+    std::shared_ptr<Order> value;
+    while (!done) {
+        while (spsc_queue.pop(value)){
+            std::cout<<value->get_id()<<"\n";
+            ++consumer_count;
+    }
+    }
 
-    // t1 = std::chrono::steady_clock::now();
-    // for (auto n : v) {
-    //     rbset.find(n);
-    // }
-    // t2 = std::chrono::steady_clock::now();
-    // dt2 = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+    while (spsc_queue.pop(value))
+        ++consumer_count;
+}
 
-    // t1 = std::chrono::steady_clock::now();
-    // for (auto n : v) {
-    //     rbset.find(n);
-    // }
-    // t2 = std::chrono::steady_clock::now();
-    // dt2 = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-    // std::cout << "Finding " << SIZE << " elements:\n";
-    // std::cout << "my ptr red-black tree : " << dt1.count() << " ms\n";
-    // std::cout << "standard red-black tree : " << dt2.count() << " ms\n";
+int main(int argc, char* argv[])
+{
+    using namespace std;
+    cout << "boost::lockfree::queue is ";
+    if (!spsc_queue.is_lock_free())
+        cout << "not ";
+    cout << "lockfree" << endl;
 
-    // std::shuffle(v.begin(), v.end(), g);
+    boost::thread producer_thread(producer);
+    boost::thread consumer_thread(consumer);
 
-    // t1 = std::chrono::steady_clock::now();
-    // for (auto n : v) {
-    //     rbtree.remove(n);
-    // }
-    // t2 = std::chrono::steady_clock::now();
-    // auto dt3 = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
+    producer_thread.join();
+    done = true;
+    consumer_thread.join();
 
-    // t1 = std::chrono::steady_clock::now();
-    // for (auto n : v) {
-    //     rbset.erase(n);
-    // }
-    // t2 = std::chrono::steady_clock::now();
-    // auto dt4 = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
-
-    // std::cout << "Deleting " << SIZE << " elements:\n";
-    // std::cout << "my red-black tree : " << dt3.count() << " ms\n";
-    // std::cout << "standard red-black tree : " << dt4.count() << " ms\n";
-
-
-    return 0;
+    cout << "produced " << producer_count << " objects." << endl;
+    cout << "consumed " << consumer_count << " objects." << endl;
 }

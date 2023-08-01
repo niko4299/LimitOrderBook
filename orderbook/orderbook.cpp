@@ -1,17 +1,18 @@
 #include "orderbook.hpp"
 
-OrderBook::OrderBook(std::string&& instrument, float market_price, std::string&& order_db_path, std::string&& trade_db_path)
-    : _instrument{instrument}
-    , _market_price{market_price}
-    , _order_repository{std::make_unique<OrderRepository>(order_db_path)}
-    , _trade_repository{std::make_unique<TradeRepository>(trade_db_path, 1)} {}
+OrderBook::OrderBook(std::string&& instrument, float market_price, std::shared_ptr<boost::lockfree::spsc_queue<Trade,boost::lockfree::capacity<1024>>>& trade_repository_ring_buffer, std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>,boost::lockfree::capacity<1024>>>& order_repository_ring_buffer)
+    : _instrument{instrument},
+     _market_price{market_price},
+     _trade_repository_ring_buffer{trade_repository_ring_buffer},
+     _order_repository_ring_buffer{order_repository_ring_buffer} {}
+
 
 std::uint64_t OrderBook::size() {
     return _orders.size();
 }
 
 void OrderBook::add_order(std::shared_ptr<Order>& order) {
-    _order_repository->save(order);
+    _order_repository_ring_buffer->push(order);
     bool is_buy = order->is_buy();
 
     if (order->has_param(OrderParams::STOP)) {
@@ -150,22 +151,23 @@ bool OrderBook::match_order(std::shared_ptr<Order>& order, RBTree<std::shared_pt
 
         while (order_qty > 0 && curr_order) {
             auto curr_order_qty = curr_order->get_qty();
+            auto before_trade = order_qty;
 
-            if (order_qty == curr_order_qty) {
+            if (curr_order_qty >= order_qty) {
+                curr_order->decrease_qty(order_qty);
                 order_qty = 0;
-                curr_order->fill();
-                // TODO: consider adding to vector and then removing at the end
-                remove_limit_order(curr_order);
-            } else if (!is_aon && order_qty > curr_order_qty) {
+            } else if (!is_aon) {
                 order_qty -= curr_order_qty;
                 curr_order->fill();
-                // TODO: consider adding to vector and then removing at the end
+            }
+            
+            // Record a trade
+            if(before_trade != order_qty){
+                handle_trade(order,curr_order, before_trade - order_qty, cross_price);
+            }
+
+            if(curr_order->is_fullfilled()){
                 remove_limit_order(curr_order);
-            } else {
-                curr_order->decrease_qty(order_qty);
-                opposite_limit->decrease_volume(order_qty);
-                order_qty = 0;
-                break;
             }
 
             curr_order = curr_order->_next;
@@ -214,6 +216,8 @@ void OrderBook::cancel_order(std::string&& order_id) {
         } else {
             remove_limit_order(orderbook_entry->second);
         }
+
+        _order_repository_ring_buffer->push(orderbook_entry->second);
     }
 }
 
@@ -338,3 +342,25 @@ float OrderBook::get_market_price() {
 void OrderBook::set_market_price(float price) {
     _market_price = price;
 }
+
+void OrderBook::handle_trade(std::shared_ptr<Order>& recieved_order, std::shared_ptr<Order>& orderbook_entry, float volume, float price){
+        Trade trade;
+        trade.instrument = _instrument;
+
+        if(recieved_order->is_buy()){
+            trade.buyer_id = recieved_order->get_user_id();
+            trade.buyer_order_id = recieved_order->get_id();
+            trade.seller_id = orderbook_entry->get_user_id();
+            trade.seller_order_id = orderbook_entry->get_id();
+        }else{
+            trade.buyer_id = orderbook_entry->get_user_id();
+            trade.buyer_order_id = orderbook_entry->get_id();   
+            trade.seller_id = recieved_order->get_user_id();
+            trade.seller_order_id = recieved_order->get_id();
+        }
+
+        trade.volume = volume;
+        trade.price = price;
+        _trade_repository_ring_buffer->push(trade);
+}
+

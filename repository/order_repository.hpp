@@ -10,7 +10,7 @@
 class OrderRepository{
     
     public:
-
+        
         OrderRepository(std::string& db_path,std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>, boost::lockfree::capacity<1024>>>& ring_buffer);
 
         ~OrderRepository();

@@ -19,7 +19,7 @@ class OrderBook final{
 
     public:
 
-        OrderBook(std::string&& instrument,float market_price, std::string&& order_db_path, std::string&& trade_db_path);
+        OrderBook(std::string&& instrument, float market_price, std::shared_ptr<boost::lockfree::spsc_queue<Trade,boost::lockfree::capacity<1024>>>& trade_repository_ring_buffer, std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>,boost::lockfree::capacity<1024>>>& order_repository_ring_buffer);
 
         Spread get_spread();
 
@@ -60,6 +60,8 @@ class OrderBook final{
 
         void add_ask_stop_orders_above(float price);
 
+        void handle_trade(std::shared_ptr<Order>& recieved_order, std::shared_ptr<Order>& orderbook_entry, float volume, float price);
+
         std::string _instrument;
         float _market_price;
         RBTree<std::shared_ptr<Limit>> _ask_limits{};
@@ -68,6 +70,6 @@ class OrderBook final{
         RBTree<std::shared_ptr<Order>> _bid_stop_orders{};
         std::unordered_map<std::string, std::shared_ptr<Order>> _orders{};
 
-        std::unique_ptr<OrderRepository> _order_repository;
-        std::unique_ptr<TradeRepository> _trade_repository;
+        std::shared_ptr<boost::lockfree::spsc_queue<Trade,boost::lockfree::capacity<1024>>> _trade_repository_ring_buffer;
+        std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>,boost::lockfree::capacity<1024>>> _order_repository_ring_buffer;
 };

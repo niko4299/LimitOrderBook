@@ -32,8 +32,7 @@ void OrderRepository::process_message(){
         while(_ring_buffer->pop(order)){
             save(order);
         }
-    }
-    
+    } 
 }
 
 bool OrderRepository::save(std::shared_ptr<Order>& order) {
