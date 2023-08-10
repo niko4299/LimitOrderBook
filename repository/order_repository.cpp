@@ -22,13 +22,12 @@ OrderRepository::OrderRepository(std::string& db_path, std::shared_ptr<boost::lo
 }
 
 OrderRepository::~OrderRepository() {
-    _done = true;
     delete _db;
 }
 
-void OrderRepository::process_message(){
+void OrderRepository::process_message(std::stop_token s){
     std::shared_ptr<Order> order;
-    while(!_done){
+    while(!s.stop_requested()){
         while(_ring_buffer->pop(order)){
             save(order);
         }

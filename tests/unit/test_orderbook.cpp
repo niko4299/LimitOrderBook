@@ -8,16 +8,17 @@ class OrderBookFixture : public testing::Test  {
     protected:
   
         virtual void SetUp() {
-            _orderbook = std::make_unique<OrderBook>("eth",1000.0,"./test_order_db/","./test_trade_db/");
+            _orderbook = std::make_unique<OrderBook>("eth",1000.0,_trade_ring_buffer,_order_ring_buffer);
         }
 
         virtual void TearDown() {
-            std::filesystem::remove_all(std::filesystem::path("./test_order_db/"));
-            std::filesystem::remove_all(std::filesystem::path("./test_trade_db/"));
-            // _orderbook = std::make_unique<OrderBook>("eth",1000.0,"./test_order_db/","./test_trade_db/");
+            _orderbook = std::make_unique<OrderBook>("eth",1000.0,_trade_ring_buffer,_order_ring_buffer);
         }
     
     std::unique_ptr<OrderBook> _orderbook;
+    std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>, boost::lockfree::capacity<1024>>> _order_ring_buffer{};
+        std::shared_ptr<boost::lockfree::spsc_queue<Trade, boost::lockfree::capacity<1024>>> _trade_ring_buffer{};
+
 };
 
 TEST_F(OrderBookFixture, TestAddStopOrder){

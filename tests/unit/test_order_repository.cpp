@@ -6,7 +6,7 @@
 class OrderRepositoryFixture : public testing::Test {
  protected:
   virtual void SetUp() {
-    _order_repository = std::make_unique<OrderRepository>(db_file_path);
+    _order_repository = std::make_unique<OrderRepository>(db_file_path,spsc_queue);
   }
 
   virtual void TearDown() {
@@ -15,6 +15,7 @@ class OrderRepositoryFixture : public testing::Test {
 
   std::string db_file_path = "./db_path_test";
   std::unique_ptr<OrderRepository> _order_repository;
+  std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>, boost::lockfree::capacity<1024>>> spsc_queue{};
 };
 
 TEST_F(OrderRepositoryFixture, TestSave){

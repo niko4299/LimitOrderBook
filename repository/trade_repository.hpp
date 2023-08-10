@@ -18,7 +18,7 @@ class TradeRepository{
 
         bool save(Trade trade);
 
-        void process_message();
+        void process_message(std::stop_token s);
         
         // std::vector<Trade> get_all_trades_between(std::time_t starting_timestamp, std::time_t ending_time_stamp);
 

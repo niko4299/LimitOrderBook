@@ -15,7 +15,7 @@ class OrderRepository{
 
         ~OrderRepository();
 
-        void process_message();
+        void process_message(std::stop_token s);
 
         bool save(std::shared_ptr<Order>& order);
 
@@ -23,6 +23,5 @@ class OrderRepository{
 
     private:
         rocksdb::DB* _db;
-        bool _done{false};
         std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>, boost::lockfree::capacity<1024UL>>> _ring_buffer;
 };

@@ -23,9 +23,9 @@ TradeRepository::TradeRepository(std::string& db_path, uint32_t batch_size, std:
     _ring_buffer = ring_buffer;
 }
 
-void TradeRepository::process_message(){
+void TradeRepository::process_message(std::stop_token s){
     Trade trade;
-    while(!_done){
+    while(!s.stop_requested()){
         while(_ring_buffer->pop(trade)){
             save(trade);
         }

@@ -12,7 +12,6 @@ std::uint64_t OrderBook::size() {
 }
 
 void OrderBook::add_order(std::shared_ptr<Order>& order) {
-    _order_repository_ring_buffer->push(order);
     bool is_buy = order->is_buy();
 
     if (order->has_param(OrderParams::STOP)) {
@@ -21,6 +20,7 @@ void OrderBook::add_order(std::shared_ptr<Order>& order) {
         // otherwise process immediately.
         if ((is_buy && _market_price > order->get_stop_price()) || (!is_buy && _market_price < order->get_stop_price())) {
             add_stop_order(order, is_buy ? _bid_stop_orders : _ask_stop_orders);
+            _order_repository_ring_buffer->push(order);
             return;
         }
 
@@ -31,6 +31,7 @@ void OrderBook::add_order(std::shared_ptr<Order>& order) {
 
     bool matched = match_order(order, is_buy ? _ask_limits : _bid_limits);
     if (matched) {
+        _order_repository_ring_buffer->push(order);
         return;
     }
 
@@ -44,6 +45,8 @@ void OrderBook::add_order(std::shared_ptr<Order>& order) {
     if (!order->is_cancelled()) {
         _orders[order->get_id()] = order;
     }
+    
+    _order_repository_ring_buffer->push(order);
 }
 
 void OrderBook::add_limit_order(std::shared_ptr<Order>& order, std::shared_ptr<Limit>& limit, RBTree<std::shared_ptr<Limit>>& limits) {
@@ -284,12 +287,6 @@ std::vector<std::shared_ptr<Order>> OrderBook::get_ask_stop_orders() {
 }
 
 void OrderBook::add_bid_stop_orders_below(float price) {
-    auto& top_bid_order = _bid_stop_orders.last();
-
-    if (!top_bid_order.has_value() || top_bid_order.value()->get_price() > price) {
-        return;
-    }
-
     std::vector<std::shared_ptr<Order>> orders_to_remove;
 
     for (auto it = _bid_stop_orders.rbegin(); it.valid(); it++) {
@@ -308,12 +305,6 @@ void OrderBook::add_bid_stop_orders_below(float price) {
 }
 
 void OrderBook::add_ask_stop_orders_above(float price) {
-    auto& bottom_ask_order = _ask_stop_orders.first();
-
-    if (!bottom_ask_order.has_value() || bottom_ask_order.value()->get_stop_price() < price) {
-        return;
-    }
-
     std::vector<std::shared_ptr<Order>> orders_to_remove;
 
     for (auto it = _ask_stop_orders.begin(); it.valid(); it++) {
@@ -363,4 +354,3 @@ void OrderBook::handle_trade(std::shared_ptr<Order>& recieved_order, std::shared
         trade.price = price;
         _trade_repository_ring_buffer->push(trade);
 }
-
