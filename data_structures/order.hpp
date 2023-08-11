@@ -22,11 +22,16 @@ class Order final {
     public:
         Order() = default;
 
-        Order(std::string id, std::string instrument, std::string user_id, float qty, float price, Side side, OrderParams params, OrderType type);
+        explicit Order(std::string id, std::string instrument, std::string user_id, float qty, float price, Side side, OrderParams params, OrderType type);
 
         Order(std::string id, std::string instrument, std::string user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type);
         
         ~Order() = default;
+        
+        Order(Order const &) = delete;
+        Order(Order &&) = delete;
+        Order &operator=(Order const &) = delete;
+        Order &operator=(Order &&) = delete;
 
         std::string& get_id();
 

@@ -1,6 +1,6 @@
 #include "orderbook.hpp"
 
-OrderBook::OrderBook(std::string&& instrument, float market_price, std::shared_ptr<boost::lockfree::spsc_queue<Trade,boost::lockfree::capacity<1024>>>& trade_repository_ring_buffer, std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>,boost::lockfree::capacity<1024>>>& order_repository_ring_buffer)
+OrderBook::OrderBook(std::string&& instrument, float market_price, std::shared_ptr<boost::lockfree::spsc_queue<Trade>>& trade_repository_ring_buffer, std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>>>& order_repository_ring_buffer)
     : _instrument{instrument},
      _market_price{market_price},
      _trade_repository_ring_buffer{trade_repository_ring_buffer},
@@ -11,7 +11,9 @@ std::uint64_t OrderBook::size() {
     return _orders.size();
 }
 
-void OrderBook::add_order(std::shared_ptr<Order>& order) {
+void OrderBook::add_order(std::shared_ptr<Order>&& order) {
+    Defer([&](){_order_repository_ring_buffer->push(std::move(order));});
+
     bool is_buy = order->is_buy();
 
     if (order->has_param(OrderParams::STOP)) {
@@ -20,7 +22,6 @@ void OrderBook::add_order(std::shared_ptr<Order>& order) {
         // otherwise process immediately.
         if ((is_buy && _market_price > order->get_stop_price()) || (!is_buy && _market_price < order->get_stop_price())) {
             add_stop_order(order, is_buy ? _bid_stop_orders : _ask_stop_orders);
-            _order_repository_ring_buffer->push(order);
             return;
         }
 
@@ -31,7 +32,6 @@ void OrderBook::add_order(std::shared_ptr<Order>& order) {
 
     bool matched = match_order(order, is_buy ? _ask_limits : _bid_limits);
     if (matched) {
-        _order_repository_ring_buffer->push(order);
         return;
     }
 
@@ -45,8 +45,6 @@ void OrderBook::add_order(std::shared_ptr<Order>& order) {
     if (!order->is_cancelled()) {
         _orders[order->get_id()] = order;
     }
-    
-    _order_repository_ring_buffer->push(order);
 }
 
 void OrderBook::add_limit_order(std::shared_ptr<Order>& order, std::shared_ptr<Limit>& limit, RBTree<std::shared_ptr<Limit>>& limits) {
@@ -75,7 +73,7 @@ void OrderBook::add_limit_order(std::shared_ptr<Order>& order, std::shared_ptr<L
     }
 }
 
-void OrderBook::modify_order(std::shared_ptr<Order>& order) {
+void OrderBook::modify_order(std::shared_ptr<Order>&& order) {
     auto orderbook_entry = _orders.find(order->get_id());
     if (orderbook_entry != _orders.end() && !orderbook_entry->second->is_cancelled() && !orderbook_entry->second->is_fullfilled()) {
         orderbook_entry->second->cancel();
@@ -292,7 +290,7 @@ void OrderBook::add_bid_stop_orders_below(float price) {
     for (auto it = _bid_stop_orders.rbegin(); it.valid(); it++) {
         auto& order = *it;
         if (order->get_stop_price() <= price) {
-            add_order(order);
+            add_order(std::move(order));
             orders_to_remove.push_back(order);
         } else {
             break;
@@ -310,7 +308,7 @@ void OrderBook::add_ask_stop_orders_above(float price) {
     for (auto it = _ask_stop_orders.begin(); it.valid(); it++) {
         auto& order = *it;
         if (order->get_stop_price() >= price) {
-            add_order(order);
+            add_order(std::move(order));
             orders_to_remove.push_back(order);
         } else {
             break;
