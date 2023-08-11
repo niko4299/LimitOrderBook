@@ -45,10 +45,7 @@ bool TradeRepository::save(std::vector<Trade> trades) {
         boost::archive::text_oarchive oa(oss);
         oa << trade;
 
-        time_t now = time(0); // get the current time
-        char timestamp_string[80];
-        std::strftime(timestamp_string, 80, "%Y-%m-%d %H:%M:%S", std::localtime(&now));
-        batch.Put(timestamp_string, oss.str());
+        batch.Put(convert_time_to_string(trade.timestamp), oss.str());
     }
 
     auto status = _db->Write(writeOptions, &batch);
@@ -61,7 +58,7 @@ bool TradeRepository::save(Trade trade) {
     boost::archive::text_oarchive oa(oss);
     oa << trade;
 
-    auto status = _db->Put(rocksdb::WriteOptions(), trade.buyer_order_id + trade.seller_order_id, oss.str());
+    auto status = _db->Put(rocksdb::WriteOptions(), convert_time_to_string(trade.timestamp), oss.str());
 
     return status.ok();
 }

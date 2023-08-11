@@ -6,6 +6,7 @@
 #include <boost/lockfree/spsc_queue.hpp>
 
 #include "../data_structures/trade.hpp"
+#include "../utils/convert_time_to_string.hpp"
 
 class TradeRepository{
     

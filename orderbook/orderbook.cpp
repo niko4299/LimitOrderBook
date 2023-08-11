@@ -334,8 +334,9 @@ void OrderBook::set_market_price(float price) {
 
 void OrderBook::handle_trade(std::shared_ptr<Order>& recieved_order, std::shared_ptr<Order>& orderbook_entry, float volume, float price){
         Trade trade;
+        
+        trade.timestamp = time(0);
         trade.instrument = _instrument;
-
         if(recieved_order->is_buy()){
             trade.buyer_id = recieved_order->get_user_id();
             trade.buyer_order_id = recieved_order->get_id();
@@ -347,8 +348,8 @@ void OrderBook::handle_trade(std::shared_ptr<Order>& recieved_order, std::shared
             trade.seller_id = recieved_order->get_user_id();
             trade.seller_order_id = recieved_order->get_id();
         }
-
         trade.volume = volume;
         trade.price = price;
+        
         _trade_repository_ring_buffer->push(trade);
 }
