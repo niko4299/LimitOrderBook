@@ -113,12 +113,23 @@ void OrderBook::remove_limit_order(std::shared_ptr<Order>& orderbook_entry) {
 }
 
 bool OrderBook::match_order(std::shared_ptr<Order>& order, RBTree<std::shared_ptr<Limit>>& limits) {
+    std::vector<std::shared_ptr<Limit>> filled_limits;
+    std::vector<std::shared_ptr<Order>> changed_orders;
+    Defer([&](){    
+        for (auto& limit : filled_limits) {
+        limits.remove(limit);
+    };
+      for(auto& order: changed_orders){         
+         _order_repository_ring_buffer->push(order);
+    }
+    }
+    );
+
     bool is_aon = order->has_param(OrderParams::AON);
     bool is_buy = order->is_buy();
     auto order_qty = order->get_qty();
     auto order_type = order->get_type();
     float cross_price;
-    std::vector<std::shared_ptr<Limit>> filled_limits;
 
     for (auto it = limits.begin(); it.valid(); it++) {
         auto& opposite_limit = *it;
@@ -171,6 +182,7 @@ bool OrderBook::match_order(std::shared_ptr<Order>& order, RBTree<std::shared_pt
                 remove_limit_order(curr_order);
             }
 
+            changed_orders.push_back(curr_order);
             curr_order = curr_order->_next;
         }
 
@@ -183,10 +195,6 @@ bool OrderBook::match_order(std::shared_ptr<Order>& order, RBTree<std::shared_pt
         if (order_qty == 0) {
             break;
         }
-    }
-
-    for (auto& limit : filled_limits) {
-        limits.remove(limit);
     }
 
     return order_qty == 0;

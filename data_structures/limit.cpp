@@ -77,6 +77,17 @@ bool Limit::operator=(const Limit& other) {
     return _price == other._price;
 }
 
+template<class Archive>
+void Limit::serialize(Archive &a, const unsigned version){
+    a & _price & _number_of_active_orders & _total_number_of_orders & _active_volume & _total_volume;
+
+    auto& curr = _head;
+    while(curr){
+        a & curr;
+        curr = curr->_next;
+    }
+}
+
 void Limit::clear() {
     _head = _tail = nullptr;
 }

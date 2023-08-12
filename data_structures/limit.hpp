@@ -62,9 +62,7 @@ class Limit final {
         friend class boost::serialization::access;
 
         template<class Archive>
-        void serialize(Archive &a, const unsigned version){
-          a & _price;
-        }
+        void serialize(Archive &a, const unsigned version);
 
         float _price;
         std::uint64_t _number_of_active_orders{0};
