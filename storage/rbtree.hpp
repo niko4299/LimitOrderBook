@@ -89,6 +89,8 @@ class ReverseRBTreeIterator{
         Node<ValueType>* m_Ptr;
 
         RBTree* rb_tree;
+
+        mutable std::shared_mutex _mutex;
 };
 
 template<class RBTree>
@@ -274,30 +276,34 @@ class RBTree{
 
     Node<T>* successor(Node<T>* node) noexcept {
         if(node->right != _nil){
-            return most_left(node->right);
-        }
+            return most_left(node->left);
+        }else if(node->parent != _nil){
+            auto successor_node = node->parent;
+            while(node == successor_node->right){
+                node = successor_node;
+                successor_node = successor_node->parent;
+            }
 
-        auto successor_node = node->parent;
-        while(successor_node && successor_node != _nil && node == successor_node->right){
-            node = successor_node;
-            successor_node = successor_node->parent;
-        }
+            return successor_node;
+        } 
 
-        return successor_node;
+        return _nil;
     }
 
     Node<T>* predecessor(Node<T>* node) noexcept {
         if(node->left != _nil){
             return most_right(node->left);
-        }
-        
-        auto predecessor_node = node->parent;
-        while(predecessor_node != _nil && node == predecessor_node->left){
-            node = predecessor_node;
-            predecessor_node = predecessor_node->parent;
-        }
+        }else if(node->parent != _nil){
+            auto predecessor_node = node->parent;
+            while(node == predecessor_node->left){
+                node = predecessor_node;
+                predecessor_node = predecessor_node->parent;
+            }
 
-        return predecessor_node;
+            return predecessor_node;
+        } 
+
+        return _nil;
     }
 
 

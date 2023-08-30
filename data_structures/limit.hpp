@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <memory>
 #include <vector>
+#include <shared_mutex>
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -57,6 +58,7 @@ class Limit final {
     public:
         std::shared_ptr<Order> _head{};
         std::shared_ptr<Order> _tail{};
+        mutable std::shared_mutex _mutex;
 
     private:
         friend class boost::serialization::access;

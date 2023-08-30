@@ -76,6 +76,7 @@ class Order final {
     public:
         std::shared_ptr<Order> _prev{};
         std::shared_ptr<Order> _next{};
+        mutable std::shared_mutex _mutex;
 
     private:
             
