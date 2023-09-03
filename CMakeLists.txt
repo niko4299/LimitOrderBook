@@ -34,9 +34,19 @@ ExternalProject_Add(
     GIT_TAG v8.1.1
 )
 
+set(SCYLLA_DRIVER_ROOT ${PROJECT_BINARY_DIR}/scylladriver)
+ExternalProject_Add(
+    scylladriver
+    PREFIX            ${SCYLLA_DRIVER_ROOT}
+    INSTALL_DIR       ${SCYLLA_DRIVER_ROOT}
+    GIT_REPOSITORY "https://github.com/scylladb/cpp-driver.git"
+)
+
 enable_testing()
 
 set(ROCKSDB_INCLUDE_DIR ${ROCKSDB_ROOT}/src/rocksdb/include)
+set(SCYLLA_DRIVER_INCLUDE_DIR ${SCYLLA_DRIVER_ROOT}/src/scylladriver/include)
+set(SCYLLA_DRIVER_LIBRARIES ${SCYLLA_DRIVER_ROOT}/src/scylladriver-build/libscylla-cpp-driver.so)
 
 FetchContent_Declare(
   googletest
@@ -46,6 +56,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 include_directories(ROCKSDB_INCLUDE_DIR)
+include_directories(SCYLLA_DRIVER_INCLUDE_DIR)
 add_executable(UnlimitedOrderBook main.cpp)
-add_dependencies(UnlimitedOrderBook rocksdb)
-target_link_libraries(UnlimitedOrderBook PUBLIC storage data_structures repository orderbook server Boost::boost Boost::thread dl)
+add_dependencies(UnlimitedOrderBook rocksdb scylladriver)
+target_link_libraries(UnlimitedOrderBook PUBLIC storage data_structures repository orderbook server Boost::boost Boost::thread dl ${SCYLLA_DRIVER_LIBRARIES})

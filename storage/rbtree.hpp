@@ -89,8 +89,6 @@ class ReverseRBTreeIterator{
         Node<ValueType>* m_Ptr;
 
         RBTree* rb_tree;
-
-        mutable std::shared_mutex _mutex;
 };
 
 template<class RBTree>

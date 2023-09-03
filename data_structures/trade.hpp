@@ -14,11 +14,4 @@ struct Trade{
     float volume;
     float price;
     std::time_t timestamp;
-
-    friend class boost::serialization::access;
-
-    template<class Archive>
-    void serialize(Archive &a, const unsigned version){
-        a & buyer_id & seller_id & buyer_order_id & seller_order_id & instrument & volume & price & timestamp;
-    }
 };

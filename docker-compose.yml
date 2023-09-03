@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+
+  scylla-trade-repository:
+    container_name: trade-repository
+    image: scylladb/scylla:latest
+    restart: always
+    command: --seeds=scylla-trade-repository --smp 1 --memory 750M --overprovisioned 1 --api-address 127.0.0.1
+    expose:
+      - "9042"
+    ports:
+      - "9042:9042"
+    volumes:
+      - "./scylla/scylla.yaml:/etc/scylla/scylla.yaml"
+      - "./scylla/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
+      - "./scylla/trade-repository.txt:/trade-repository.txt"
+    networks:
+      web:
+
+
+networks:
+  web:
+    driver: bridge

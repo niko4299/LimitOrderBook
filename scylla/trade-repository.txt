@@ -1,0 +1,14 @@
+CREATE KEYSPACE orderbook WITH REPLICATION = { 'class' : 'NetworkTopologyStrategy','DC1' : 3};
+
+USE orderbook;
+
+CREATE TABLE trades (
+buyer_id text,
+seller_id text, 
+buyer_order_id text,
+seller_order_id text,
+instrument text, 
+timestamp time,
+volume float,
+price float
+PRIMARY KEY((buyer_id, seller_id)));
