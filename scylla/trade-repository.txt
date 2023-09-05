@@ -11,4 +11,4 @@ instrument text,
 timestamp time,
 volume float,
 price float
-PRIMARY KEY((buyer_id, seller_id)));
+PRIMARY KEY((buyer_id, seller_id, timestamp)));

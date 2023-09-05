@@ -15,7 +15,7 @@ class OrderRepositoryFixture : public testing::Test {
 
   std::string db_file_path = "./db_path_test";
   std::unique_ptr<OrderRepository> _order_repository;
-  std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>, boost::lockfree::capacity<1024>>> spsc_queue{};
+  std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>, boost::lockfree::capacity<1024>>> spsc_queue;
 };
 
 TEST_F(OrderRepositoryFixture, TestSave){
@@ -52,6 +52,3 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-
-
-

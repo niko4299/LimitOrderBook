@@ -1,18 +1,24 @@
 #include "trade_repository.hpp"
 
 
-TradeRepository::TradeRepository(std::string& db_path, uint32_t batch_size, std::shared_ptr<boost::lockfree::spsc_queue<Trade, boost::lockfree::capacity<1024UL>>>& ring_buffer) {
+TradeRepository::TradeRepository(std::string& hosts, uint32_t batch_size, std::shared_ptr<boost::lockfree::spsc_queue<Trade, boost::lockfree::capacity<1024UL>>>& ring_buffer) {
     _cluster = cass_cluster_new();
     _session = cass_session_new();
+
+    cass_cluster_set_contact_points(_cluster, hosts.c_str());
     auto connect_future = std::unique_ptr<CassFuture, decltype(&cass_future_free)>(cass_session_connect(_session, _cluster), &cass_future_free);
 
     if (cass_future_error_code(connect_future.get()) != CASS_OK){
       throw std::runtime_error("Failed connecting to scylla db.");
     }else{
         const char* insert_query = "INSERT INTO orderbook.trades (buyer_id, seller_id, buyer_order_id, seller_order_id, instrument, timestamp, volume, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+        const char* select_by_primary_key_query = "SELECT * FROM orderbook.trades where buyer_id=? and seller_id=? and timestamp=?";
         CassFuture* prep_future = cass_session_prepare(_session, insert_query);
         cass_future_wait(prep_future);
         _prepared_insert_query = cass_future_get_prepared(prep_future);
+        prep_future = cass_session_prepare(_session, select_by_primary_key_query);
+        cass_future_wait(prep_future);
+        _prepared_select_by_primary_key_query = cass_future_get_prepared(prep_future);
         cass_future_free(prep_future);
     }
 
@@ -20,7 +26,7 @@ TradeRepository::TradeRepository(std::string& db_path, uint32_t batch_size, std:
     _ring_buffer = ring_buffer;
 }
 
-void TradeRepository::process_message(std::stop_token s){
+void TradeRepository::process_message(std::stop_token& s){
     Trade trade;
     while(!s.stop_requested()){
         while(_ring_buffer->pop(trade)){
@@ -55,3 +61,94 @@ bool TradeRepository::save(Trade trade) {
 
     return ok;
 }
+
+const char* get_column_string(const CassRow* row,std::string&& column_name){
+    const CassValue* value = cass_row_get_column_by_name(row, column_name.c_str());
+    const char* column_value;
+    size_t length;
+    cass_value_get_string(value, &column_value, &length);
+
+    return std::move(column_value);
+}
+
+float get_column_float(const CassRow* row,std::string&& column_name){
+    const CassValue* value = cass_row_get_column_by_name(row, column_name.c_str());
+    float column_value;
+    cass_value_get_float(value, &column_value);
+
+    return std::move(column_value);
+}
+
+std::int64_t get_column_int64(const CassRow* row,std::string&& column_name){
+    const CassValue* value = cass_row_get_column_by_name(row, column_name.c_str());
+    std::int64_t column_value;
+    cass_value_get_int64(value, &column_value);
+
+    return std::move(column_value);
+}
+
+Trade convert_to_trade(CassIterator*& iterator){
+    Trade trade;
+    const CassRow* row = cass_iterator_get_row(iterator);
+
+    get_column_string(row, std::move("buyer_id"));
+    trade.seller_id = get_column_string(row, std::move("seller_id"));
+    trade.buyer_order_id = get_column_string(row, std::move("buyer_order_id"));
+    trade.seller_order_id = get_column_string(row, std::move("sell_order_id"));
+    trade.instrument = get_column_string(row, std::move("instrument"));
+    trade.volume = get_column_float(row, std::move("volume"));
+    trade.buyer_id = get_column_float(row, std::move("price"));     
+    trade.timestamp = get_column_int64(row, std::move("timestamp"));
+
+    return trade;
+}
+
+std::vector<Trade> TradeRepository::get_all_trades(){
+    CassStatement* statement = cass_statement_new(_query_all, 0);
+    CassFuture* result_future = cass_session_execute(_session, statement);
+    std::vector<Trade> all_trades{};
+    
+    if (cass_future_error_code(result_future) == CASS_OK) {
+        const CassResult* result = cass_future_get_result(result_future);
+        CassIterator* iterator = cass_iterator_from_result(result);
+
+        while (cass_iterator_next(iterator)) {
+            all_trades.push_back(convert_to_trade(iterator));
+        }
+
+        cass_result_free(result);
+        cass_iterator_free(iterator);
+    }
+
+    cass_statement_free(statement);
+    cass_future_free(result_future);
+    
+    return all_trades;
+}
+
+std::optional<Trade> TradeRepository::get_trade_by_primary_key(std::string&& buyer_id, std::string&& seller_id, std::time_t timestamp){
+    auto statement = cass_prepared_bind(_prepared_select_by_primary_key_query);
+
+    cass_statement_bind_string(statement, 0, buyer_id.c_str());
+    cass_statement_bind_string(statement, 1, seller_id.c_str());
+    cass_statement_bind_int64(statement, 2, timestamp);
+
+    auto future = cass_session_execute(_session, statement);
+    cass_future_wait(future);
+
+    if (cass_future_error_code(future) != CASS_OK) {
+        return std::nullopt;
+    } 
+
+    const CassResult* result = cass_future_get_result(future);
+    CassIterator* iterator = cass_iterator_from_result(result);
+    auto trade = convert_to_trade(iterator);
+
+    cass_result_free(result);
+    cass_iterator_free(iterator);
+    cass_future_free(future);
+    cass_statement_free(statement);
+
+    return std::move(trade);
+}
+

@@ -25,3 +25,7 @@ target_link_libraries(test_order_repository repository rocksdb data_structures g
 add_executable(test_orderbook test_orderbook.cpp)
 add_test(${test_prefix}test_orderbook test_orderbook)
 target_link_libraries(test_orderbook orderbook repository rocksdb data_structures gtest gmock Boost::serialization)
+
+add_executable(test_trade_repository test_trade_repository.cpp)
+add_test(${test_prefix}test_trade_repository test_trade_repository)
+target_link_libraries(test_trade_repository repository data_structures gtest gmock ${PROJECT_BINARY_DIR}/scylladriver/src/scylladriver-build/libscylla-cpp-driver.so)
