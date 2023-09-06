@@ -23,6 +23,8 @@ class TradeRepository{
 
         std::optional<Trade> get_trade_by_primary_key(std::string&& buyer_id, std::string&& seller_id, std::time_t timestamp);
 
+        bool run_query(std::string&& query);
+        
     private:
         CassCluster* _cluster;
         CassSession* _session;
@@ -30,6 +32,6 @@ class TradeRepository{
         bool _done{false};
         std::shared_ptr<boost::lockfree::spsc_queue<Trade, boost::lockfree::capacity<1024UL>>> _ring_buffer;
         const CassPrepared* _prepared_insert_query;
-        const char* _query_all = "SELECT * FROM orederbook.trades";
+        const char* _query_all = "SELECT * FROM orderbook.trades";
         const CassPrepared* _prepared_select_by_primary_key_query;
 };

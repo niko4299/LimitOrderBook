@@ -9,6 +9,12 @@ class TradeRepositoryFixture : public testing::Test {
             _trade_repository = std::make_unique<TradeRepository>(_host, 1, spsc_queue);
         }
 
+        virtual void TearDown(){
+             _trade_repository = std::make_unique<TradeRepository>(_host, 1, spsc_queue);
+
+            _trade_repository->run_query("TRUNCATE orderbook.trades;");
+        }
+
   std::string _host = "0.0.0.0";
   std::unique_ptr<TradeRepository> _trade_repository;
   std::shared_ptr<boost::lockfree::spsc_queue<Trade, boost::lockfree::capacity<1024>>> spsc_queue;
@@ -28,7 +34,7 @@ TEST_F(TradeRepositoryFixture, TestGetAll){
     ASSERT_TRUE(saved);
 
     auto all_trades = _trade_repository->get_all_trades();
-    ASSERT_EQ(all_trades.size(),2);
+    ASSERT_EQ(all_trades.size(),1);
 }
 
 TEST_F(TradeRepositoryFixture, TestGetByPrimaryKey){
