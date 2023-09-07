@@ -28,17 +28,15 @@ class RingBuffer {
                 }
             }
 
-            next_write_pos%=_capacity;
             _data[write_pos] = T(std::forward<Arg>(value));
-
+            
+            next_write_pos%=_capacity;
             _write_pos.store(next_write_pos, std::memory_order_release);
-
             return; 
         }
 
         bool pop(T& value){
             auto read_pos = _read_pos.load(std::memory_order_relaxed);
-
             if (read_pos == _write_pos_cache) {
                 _write_pos_cache = _write_pos.load(std::memory_order_acquire);
                 if (read_pos == _write_pos_cache) {
