@@ -10,8 +10,9 @@ class RingBuffer {
         RingBuffer(std::size_t capacity): _capacity{capacity}, _data(capacity) {}
 
         ~RingBuffer() = default;
-        
-        void push(T value){
+
+        template <typename Arg>
+        void push(Arg&& value){
             std::uint64_t write_pos;
             std::uint64_t next_write_pos;
             while(true){
@@ -28,12 +29,11 @@ class RingBuffer {
             }
 
             next_write_pos%=_capacity;
-            _data[write_pos] = T(std::forward<T>(value));
+            _data[write_pos] = T(std::forward<Arg>(value));
 
             _write_pos.store(next_write_pos, std::memory_order_release);
 
-            return;
-            
+            return; 
         }
 
         bool pop(T& value){
