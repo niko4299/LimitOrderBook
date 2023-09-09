@@ -1,13 +1,13 @@
 #include<atomic>
 #include<memory>
-#include<vector>
+#include<array>
 
 template<typename T>
 class RingBuffer {
 
     public:
 
-        RingBuffer(std::size_t capacity): _capacity{capacity}, _data(capacity) {}
+        RingBuffer(std::size_t capacity): _capacity{capacity}, _data(std::make_unique<T[]>(capacity)) {}
 
         ~RingBuffer() = default;
 
@@ -57,5 +57,5 @@ class RingBuffer {
         std::uint64_t _read_pos_cache{0};
         std::atomic<std::uint64_t> _write_pos{0};
         std::uint64_t _write_pos_cache{0};
-        std::vector<T> _data;
+        std::unique_ptr<T[]> _data;
 };
