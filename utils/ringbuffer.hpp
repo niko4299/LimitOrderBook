@@ -30,7 +30,10 @@ class RingBuffer {
 
             _data[write_pos] = T(std::forward<Arg>(value));
             
-            next_write_pos%=_capacity;
+            if(next_write_pos == _capacity){
+                next_write_pos = 0;
+            }
+
             _write_pos.store(next_write_pos, std::memory_order_release);
             return; 
         }
@@ -45,7 +48,11 @@ class RingBuffer {
             }
 
             value = std::move(_data[read_pos++]);
-            read_pos %= _capacity;
+            
+            if(read_pos == _capacity){
+                read_pos = 0;
+            }
+
             _read_pos.store(read_pos, std::memory_order_release);
             return true;
         }
