@@ -3,13 +3,14 @@
 #include<memory>
 
 #include "../orderbook/orderbook.hpp"
+#include "../utils/thread_pool.hpp"
 
 class Exchange final {
 
     public:
-        explicit Exchange();
+        explicit Exchange(const std::vector<std::string>& symbols, std::size_t ringbuffer_size_per_instrument);
 
-        ~Exchange();
+        ~Exchange() = default;
 
         void add_order();
 
@@ -21,4 +22,5 @@ class Exchange final {
 
     private:
         std::unordered_map<std::string, std::shared_ptr<OrderBook>> _instruments;
+        std::unique_ptr<ThreadPool> thread_pool;
 };
