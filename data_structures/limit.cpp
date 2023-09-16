@@ -1,8 +1,7 @@
 #include "limit.hpp"
 #include "order.hpp"
 
-Limit::Limit(float price)
-    : _price{price} {}
+Limit::Limit(float price): _price{price} {}
 
 float Limit::get_price() {
     return _price;

@@ -1,7 +1,7 @@
 #include "trade_repository.hpp"
 
 
-TradeRepository::TradeRepository(std::string& hosts, uint32_t batch_size, std::shared_ptr<boost::lockfree::spsc_queue<Trade, boost::lockfree::capacity<1024UL>>>& ring_buffer) {
+TradeRepository::TradeRepository(std::string& hosts, uint32_t batch_size, std::shared_ptr<RingBuffer<Trade>>& ring_buffer) {
     _cluster = cass_cluster_new();
     _session = cass_session_new();
 

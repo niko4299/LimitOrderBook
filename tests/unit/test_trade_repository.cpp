@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "../../repository/trade_repository.hpp"
+#include "../../utils/ringbuffer.hpp"
 
 class TradeRepositoryFixture : public testing::Test {
     protected:
@@ -17,7 +18,7 @@ class TradeRepositoryFixture : public testing::Test {
 
   std::string _host = "0.0.0.0";
   std::unique_ptr<TradeRepository> _trade_repository;
-  std::shared_ptr<boost::lockfree::spsc_queue<Trade, boost::lockfree::capacity<1024>>> spsc_queue;
+  std::shared_ptr<RingBuffer<Trade>> spsc_queue;
 };
 
 TEST_F(TradeRepositoryFixture, TestSave){

@@ -1,6 +1,6 @@
 #include "order_repository.hpp"
 
-OrderRepository::OrderRepository(std::string& db_path, std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>, boost::lockfree::capacity<1024>>>& ring_buffer) {
+OrderRepository::OrderRepository(std::string& db_path, std::shared_ptr<RingBuffer<std::shared_ptr<Order>>>& ring_buffer) {
     auto file_system_db_path = std::filesystem::path(db_path);
     if (!std::filesystem::is_directory(file_system_db_path)) {
         auto ok = std::filesystem::create_directory(file_system_db_path);

@@ -1,9 +1,11 @@
+#pragma once
+
 #include<atomic>
 #include<memory>
 #include<array>
 
 template<typename T>
-class RingBuffer {
+class RingBuffer final {
 
     public:
 

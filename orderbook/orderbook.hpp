@@ -8,7 +8,7 @@
 #include "../repository/order_repository.hpp"
 #include "../repository/trade_repository.hpp"
 #include "../utils/defer.hpp"
-
+#include "../utils/ringbuffer.hpp"
 
 struct Spread{
     float best_bid;
@@ -20,7 +20,7 @@ class OrderBook final{
 
     public:
 
-        OrderBook(std::string&& instrument, float market_price, std::shared_ptr<boost::lockfree::spsc_queue<Trade>>& trade_repository_ring_buffer, std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>>>& order_repository_ring_buffer);
+        OrderBook(std::string&& instrument, float market_price, std::shared_ptr<RingBuffer<Trade>>& trade_repository_ring_buffer, std::shared_ptr<RingBuffer<std::shared_ptr<Order>>>& order_repository_ring_buffer);
 
         Spread get_spread();
 
@@ -71,6 +71,6 @@ class OrderBook final{
         RBTree<std::shared_ptr<Order>> _bid_stop_orders{};
         std::unordered_map<std::string, std::shared_ptr<Order>> _orders{};
 
-        std::shared_ptr<boost::lockfree::spsc_queue<Trade>> _trade_repository_ring_buffer;
-        std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>>> _order_repository_ring_buffer;
+        std::shared_ptr<RingBuffer<Trade>> _trade_repository_ring_buffer;
+        std::shared_ptr<RingBuffer<std::shared_ptr<Order>>> _order_repository_ring_buffer;
 };

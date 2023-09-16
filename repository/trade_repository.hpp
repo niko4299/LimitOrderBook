@@ -4,14 +4,14 @@
 #include <stdexcept>
 
 #include <cassandra.h>
-#include <boost/lockfree/spsc_queue.hpp>
 
 #include "../data_structures/trade.hpp"
+#include "../utils/ringbuffer.hpp"
 
 class TradeRepository{
     
     public:
-        TradeRepository(std::string& hosts, uint32_t batch_size, std::shared_ptr<boost::lockfree::spsc_queue<Trade, boost::lockfree::capacity<1024UL>>>& ring_buffer);
+        TradeRepository(std::string& hosts, uint32_t batch_size, std::shared_ptr<RingBuffer<Trade>>& ring_buffer);
 
         ~TradeRepository();
 
@@ -30,7 +30,7 @@ class TradeRepository{
         CassSession* _session;
         uint32_t _batch_size;
         bool _done{false};
-        std::shared_ptr<boost::lockfree::spsc_queue<Trade, boost::lockfree::capacity<1024UL>>> _ring_buffer;
+        std::shared_ptr<RingBuffer<Trade>> _ring_buffer;
         const CassPrepared* _prepared_insert_query;
         const char* _query_all = "SELECT * FROM orderbook.trades";
         const CassPrepared* _prepared_select_by_primary_key_query;

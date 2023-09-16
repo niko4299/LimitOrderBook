@@ -1,6 +1,6 @@
 #include "orderbook.hpp"
 
-OrderBook::OrderBook(std::string&& instrument, float market_price, std::shared_ptr<boost::lockfree::spsc_queue<Trade>>& trade_repository_ring_buffer, std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>>>& order_repository_ring_buffer)
+OrderBook::OrderBook(std::string&& instrument, float market_price, std::shared_ptr<RingBuffer<Trade>>& trade_repository_ring_buffer, std::shared_ptr<RingBuffer<std::shared_ptr<Order>>>& order_repository_ring_buffer)
     : _instrument{instrument},
      _market_price{market_price},
      _trade_repository_ring_buffer{trade_repository_ring_buffer},
@@ -12,7 +12,7 @@ std::uint64_t OrderBook::size() {
 }
 
 void OrderBook::add_order(std::shared_ptr<Order>&& order) {
-    Defer([&](){_order_repository_ring_buffer->push(std::move(order));});
+    Defer([&](){_order_repository_ring_buffer->push(order);});
 
     bool is_buy = order->is_buy();
 

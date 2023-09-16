@@ -3,15 +3,15 @@
 
 #include "rocksdb/db.h"
 #include "rocksdb/options.h"
-#include <boost/lockfree/spsc_queue.hpp>
 
 #include "../data_structures/order.hpp"
+#include "../utils/ringbuffer.hpp"
 
 class OrderRepository{
     
     public:
         
-        OrderRepository(std::string& db_path,std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>, boost::lockfree::capacity<1024>>>& ring_buffer);
+        OrderRepository(std::string& db_path,std::shared_ptr<RingBuffer<std::shared_ptr<Order>>>& ring_buffer);
 
         ~OrderRepository();
 
@@ -23,5 +23,5 @@ class OrderRepository{
 
     private:
         rocksdb::DB* _db;
-        std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>, boost::lockfree::capacity<1024UL>>> _ring_buffer;
+        std::shared_ptr<RingBuffer<std::shared_ptr<Order>>> _ring_buffer;
 };

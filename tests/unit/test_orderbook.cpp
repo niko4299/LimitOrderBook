@@ -3,7 +3,6 @@
 
 #include "../../orderbook/orderbook.hpp"
 
-
 class OrderBookFixture : public testing::Test  {
     protected:
   
@@ -15,8 +14,8 @@ class OrderBookFixture : public testing::Test  {
             _orderbook = std::make_unique<OrderBook>("eth",1000.0,_trade_ring_buffer,_order_repository_ring_buffer);
         }
         
-    std::shared_ptr<boost::lockfree::spsc_queue<std::shared_ptr<Order>>> _order_repository_ring_buffer = std::make_shared<boost::lockfree::spsc_queue<std::shared_ptr<Order>>>(1024);
-    std::shared_ptr<boost::lockfree::spsc_queue<Trade>> _trade_ring_buffer = std::make_shared<boost::lockfree::spsc_queue<Trade>>(1024);
+    std::shared_ptr<RingBuffer<std::shared_ptr<Order>>> _order_repository_ring_buffer = std::make_shared<RingBuffer<std::shared_ptr<Order>>>(1024);
+    std::shared_ptr<RingBuffer<Trade>> _trade_ring_buffer = std::make_shared<RingBuffer<Trade>>(1024);
     std::unique_ptr<OrderBook> _orderbook;
 };
 
