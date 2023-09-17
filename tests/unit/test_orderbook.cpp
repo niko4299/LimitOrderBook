@@ -7,15 +7,15 @@ class OrderBookFixture : public testing::Test  {
     protected:
   
         virtual void SetUp() {
-            _orderbook = std::make_unique<OrderBook>("eth",1000.0,_trade_ring_buffer,_order_repository_ring_buffer);
+            _orderbook = std::make_unique<OrderBook>("eth",1000.0,_order_repository,_trade_repository);
         }
 
         virtual void TearDown() {
-            _orderbook = std::make_unique<OrderBook>("eth",1000.0,_trade_ring_buffer,_order_repository_ring_buffer);
+            _orderbook = std::make_unique<OrderBook>("eth",1000.0,_order_repository,_trade_repository);
         }
         
-    std::shared_ptr<RingBuffer<std::shared_ptr<Order>>> _order_repository_ring_buffer = std::make_shared<RingBuffer<std::shared_ptr<Order>>>(1024);
-    std::shared_ptr<RingBuffer<Trade>> _trade_ring_buffer = std::make_shared<RingBuffer<Trade>>(1024);
+    std::shared_ptr<OrderRepository> _order_repository = std::make_shared<OrderRepository>("./db_path",100);
+    std::shared_ptr<TradeRepository> _trade_repository = std::make_shared<TradeRepository>("0.0.0.0",100,100);
     std::unique_ptr<OrderBook> _orderbook;
 };
 

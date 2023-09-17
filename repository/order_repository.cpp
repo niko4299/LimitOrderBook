@@ -1,6 +1,6 @@
 #include "order_repository.hpp"
 
-OrderRepository::OrderRepository(std::string& db_path, std::shared_ptr<RingBuffer<std::shared_ptr<Order>>>& ring_buffer) {
+OrderRepository::OrderRepository(std::string&& db_path, std::size_t ringbuffer_size) {
     auto file_system_db_path = std::filesystem::path(db_path);
     if (!std::filesystem::is_directory(file_system_db_path)) {
         auto ok = std::filesystem::create_directory(file_system_db_path);
@@ -18,11 +18,16 @@ OrderRepository::OrderRepository(std::string& db_path, std::shared_ptr<RingBuffe
     if (!status.ok()) {
         throw std::runtime_error("Couldn't open connection with order repository database");
     }
-    _ring_buffer = ring_buffer;
+
+    _ring_buffer = std::make_unique<RingBuffer<std::shared_ptr<Order>>>(ringbuffer_size);
 }
 
 OrderRepository::~OrderRepository() {
     delete _db;
+}
+
+void OrderRepository::enqueue(std::shared_ptr<Order>& order) const {
+    _ring_buffer->push(order);
 }
 
 void OrderRepository::process_message(std::stop_token s){

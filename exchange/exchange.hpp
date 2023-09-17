@@ -8,7 +8,7 @@
 class Exchange final {
 
     public:
-        explicit Exchange(const std::vector<std::string>& symbols, std::size_t ringbuffer_size_per_instrument);
+        explicit Exchange(const std::vector<std::string>& symbols, std::size_t ringbuffer_size_per_instrument, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository);
 
         ~Exchange() = default;
 

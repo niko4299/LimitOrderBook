@@ -3,21 +3,18 @@
 #include <gtest/gtest.h>
 
 #include "../../repository/order_repository.hpp"
-#include "../../utils/ringbuffer.hpp"
 
 class OrderRepositoryFixture : public testing::Test {
  protected:
   virtual void SetUp() {
-    _order_repository = std::make_unique<OrderRepository>(db_file_path,spsc_queue);
+    _order_repository = std::make_unique<OrderRepository>("./db_path_test", 100);
   }
 
   virtual void TearDown() {
-    std::filesystem::remove_all(std::filesystem::path(db_file_path));
+    std::filesystem::remove_all(std::filesystem::path("./db_path_test"));
   }
 
-  std::string db_file_path = "./db_path_test";
   std::unique_ptr<OrderRepository> _order_repository;
-  std::shared_ptr<RingBuffer<std::shared_ptr<Order>>> spsc_queue;
 };
 
 TEST_F(OrderRepositoryFixture, TestSave){

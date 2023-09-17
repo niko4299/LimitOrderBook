@@ -2,23 +2,20 @@
 #include <gtest/gtest.h>
 
 #include "../../repository/trade_repository.hpp"
-#include "../../utils/ringbuffer.hpp"
 
 class TradeRepositoryFixture : public testing::Test {
     protected:
         virtual void SetUp() {
-            _trade_repository = std::make_unique<TradeRepository>(_host, 1, spsc_queue);
+            _trade_repository = std::make_unique<TradeRepository>("0.0.0.0", 1, 100);
         }
 
         virtual void TearDown(){
-             _trade_repository = std::make_unique<TradeRepository>(_host, 1, spsc_queue);
+             _trade_repository = std::make_unique<TradeRepository>("0.0.0.0", 1, 100);
 
             _trade_repository->run_query("TRUNCATE orderbook.trades;");
         }
 
-  std::string _host = "0.0.0.0";
-  std::unique_ptr<TradeRepository> _trade_repository;
-  std::shared_ptr<RingBuffer<Trade>> spsc_queue;
+    std::unique_ptr<TradeRepository> _trade_repository;
 };
 
 TEST_F(TradeRepositoryFixture, TestSave){

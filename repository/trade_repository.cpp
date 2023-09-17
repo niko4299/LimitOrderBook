@@ -1,7 +1,7 @@
 #include "trade_repository.hpp"
 
 
-TradeRepository::TradeRepository(std::string& hosts, uint32_t batch_size, std::shared_ptr<RingBuffer<Trade>>& ring_buffer) {
+TradeRepository::TradeRepository(std::string&& hosts, uint32_t batch_size, std::size_t ringbuffer_size) {
     _cluster = cass_cluster_new();
     _session = cass_session_new();
 
@@ -23,7 +23,11 @@ TradeRepository::TradeRepository(std::string& hosts, uint32_t batch_size, std::s
     cass_future_free(prep_future);
 
     _batch_size = batch_size;
-    _ring_buffer = ring_buffer;
+    _ring_buffer = std::make_unique<RingBuffer<Trade>>(ringbuffer_size);
+}
+
+void TradeRepository::enqueue(Trade& trade) const {
+    _ring_buffer->push(trade);
 }
 
 void TradeRepository::process_message(std::stop_token& s){

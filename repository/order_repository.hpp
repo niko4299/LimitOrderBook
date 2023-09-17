@@ -11,7 +11,7 @@ class OrderRepository{
     
     public:
         
-        OrderRepository(std::string& db_path,std::shared_ptr<RingBuffer<std::shared_ptr<Order>>>& ring_buffer);
+        OrderRepository(std::string&& db_path, std::size_t ringbuffer_size);
 
         ~OrderRepository();
 
@@ -21,7 +21,14 @@ class OrderRepository{
 
         std::optional<std::shared_ptr<Order>> get(std::string& order_id);
 
+        void enqueue(std::shared_ptr<Order>& order) const;
+
+        OrderRepository(OrderRepository const &) = delete;
+        OrderRepository(OrderRepository &&) = delete;
+        OrderRepository &operator=(OrderRepository const &) = delete;
+        OrderRepository &operator=(OrderRepository &&) = delete;
+
     private:
         rocksdb::DB* _db;
-        std::shared_ptr<RingBuffer<std::shared_ptr<Order>>> _ring_buffer;
+        std::unique_ptr<RingBuffer<std::shared_ptr<Order>>> _ring_buffer;
 };

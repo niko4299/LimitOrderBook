@@ -1,10 +1,10 @@
 #include "orderbook.hpp"
 
-OrderBook::OrderBook(std::string&& instrument, float market_price, std::shared_ptr<RingBuffer<Trade>>& trade_repository_ring_buffer, std::shared_ptr<RingBuffer<std::shared_ptr<Order>>>& order_repository_ring_buffer)
+OrderBook::OrderBook(std::string&& instrument, float market_price, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository)
     : _instrument{instrument},
      _market_price{market_price},
-     _trade_repository_ring_buffer{trade_repository_ring_buffer},
-     _order_repository_ring_buffer{order_repository_ring_buffer} {}
+     _order_repository{order_repository},
+     _trade_repository{trade_repository} {}
 
 
 std::uint64_t OrderBook::size() {
@@ -12,7 +12,7 @@ std::uint64_t OrderBook::size() {
 }
 
 void OrderBook::add_order(std::shared_ptr<Order>&& order) {
-    Defer([&](){_order_repository_ring_buffer->push(order);});
+    Defer([&](){_order_repository->enqueue(order);});
 
     bool is_buy = order->is_buy();
 
@@ -118,10 +118,11 @@ bool OrderBook::match_order(std::shared_ptr<Order>& order, RBTree<std::shared_pt
     Defer([&](){    
         for (auto& limit : filled_limits) {
         limits.remove(limit);
-    };
-      for(auto& order: changed_orders){         
-         _order_repository_ring_buffer->push(order);
-    }
+        };
+
+        for(auto& order: changed_orders){         
+         _order_repository->enqueue(order);
+        }
     }
     );
 
@@ -226,7 +227,7 @@ void OrderBook::cancel_order(std::string&& order_id) {
             remove_limit_order(orderbook_entry->second);
         }
 
-        _order_repository_ring_buffer->push(orderbook_entry->second);
+        _order_repository->enqueue(orderbook_entry->second);
     }
 }
 
@@ -359,5 +360,5 @@ void OrderBook::handle_trade(std::shared_ptr<Order>& recieved_order, std::shared
         trade.volume = volume;
         trade.price = price;
         
-        _trade_repository_ring_buffer->push(trade);
+        _trade_repository->enqueue(trade);
 }
