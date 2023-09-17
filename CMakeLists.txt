@@ -31,7 +31,7 @@ ExternalProject_Add(
     PREFIX            ${ROCKSDB_ROOT}
     INSTALL_DIR       ${ROCKSDB_ROOT}
     GIT_REPOSITORY "https://github.com/facebook/rocksdb.git"
-    GIT_TAG v8.1.1
+    GIT_TAG v8.5.3
 )
 
 set(SCYLLA_DRIVER_ROOT ${PROJECT_BINARY_DIR}/scylladriver)
@@ -59,4 +59,4 @@ include_directories(ROCKSDB_INCLUDE_DIR)
 include_directories(SCYLLA_DRIVER_INCLUDE_DIR)
 add_executable(UnlimitedOrderBook main.cpp)
 add_dependencies(UnlimitedOrderBook rocksdb scylladriver)
-target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook server Boost::boost Boost::thread dl ${SCYLLA_DRIVER_LIBRARIES})
+target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook server)
