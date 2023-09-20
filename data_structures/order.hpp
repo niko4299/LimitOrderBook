@@ -22,9 +22,9 @@ class Order final {
     public:
         Order() = default;
 
-        explicit Order(std::string id, std::string instrument, std::string user_id, float qty, float price, Side side, OrderParams params, OrderType type);
+        explicit Order(std::string id, std::string& instrument, std::string& user_id, float qty, float price, Side side, OrderParams params, OrderType type);
 
-        Order(std::string id, std::string instrument, std::string user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type);
+        Order(std::string id, std::string& instrument, std::string& user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type);
         
         ~Order() = default;
         
@@ -68,6 +68,8 @@ class Order final {
         void set_limit_parent(std::shared_ptr<Limit>& limit);
 
         std::shared_ptr<Limit>& get_limit_parent();
+
+        std::string& get_instrument();
         
         bool operator==(const Order& other);
 

@@ -12,15 +12,16 @@ class Exchange final {
 
         ~Exchange() = default;
 
-        void add_order();
+        void add_order(std::shared_ptr<Order>&& order);
 
-        void modify_order();
+        void modify_order(std::shared_ptr<Order>&& order);
 
-        void cancel_order();
+        void cancel_order(std::string& instrument, std::string& order_id);
 
-        void add_instrument();
+        void add_instrument(std::string& instrument, std::size_t ringbuffer_size_per_instrument);
 
     private:
+        std::unordered_map<std::string, std::uint32_t> _instrument_idx{};
         std::unordered_map<std::string, std::shared_ptr<OrderBook>> _instruments;
-        std::unique_ptr<ThreadPool> thread_pool;
+        std::unique_ptr<ThreadPool> _thread_pool;
 };

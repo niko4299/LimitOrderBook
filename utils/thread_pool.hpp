@@ -12,17 +12,7 @@ class ThreadPool {
 public:
     ThreadPool(std::size_t num_instruments, std::size_t ring_buffer_size) : _stop(false) {
         for (std::size_t i = 0; i < num_instruments; ++i) {
-            _task_ring_buffer.emplace_back(RingBuffer<std::function<void()>>{ring_buffer_size});
-            _workers.emplace_back([this,i] {
-                auto idx = i;
-                while (!_stop.load()) {
-                    std::function<void()> task;
-
-                    if (!_task_ring_buffer[idx]->pop(task)) {
-                        task();
-                    }
-                }
-            });
+            add_thread(ring_buffer_size);
         }
     }
 
@@ -33,7 +23,20 @@ public:
         }
     }
 
-    // Add a task to the thread pool
+    void ThreadPool::add_thread(std::size_t ring_buffer_size){
+        auto rb = std::make_shared<RingBuffer<std::function<void()>>>(ring_buffer_size);
+        _task_ring_buffer.emplace_back(rb);
+        _workers.emplace_back([this,rb] {
+            while (!_stop.load()) {
+                std::function<void()> task;
+
+                if (!rb->pop(task)) {
+                    task();
+                }
+            }
+        });
+    }
+
     template <typename F>
     void enqueue(std::size_t idx, F&& f) {
         _task_ring_buffer[idx]->push(std::forward<F>(f));
