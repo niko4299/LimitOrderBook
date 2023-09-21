@@ -9,7 +9,10 @@ class RingBuffer final {
 
     public:
 
-        RingBuffer(std::size_t capacity): _capacity{capacity}, _data(std::make_unique<T[]>(capacity)) {}
+        RingBuffer(std::size_t capacity): _capacity{capacity}, _data(std::make_unique<T[]>(capacity)) {
+            _read_pos.store(0);
+            _write_pos.store(0);
+        }
 
         ~RingBuffer() = default;
 
@@ -62,9 +65,9 @@ class RingBuffer final {
 
     private:
         std::uint64_t _capacity;
-        std::atomic<std::uint64_t> _read_pos{0};
+        std::atomic<std::uint64_t> _read_pos;
         std::uint64_t _read_pos_cache{0};
-        std::atomic<std::uint64_t> _write_pos{0};
+        std::atomic<std::uint64_t> _write_pos;
         std::uint64_t _write_pos_cache{0};
         std::unique_ptr<T[]> _data;
 };

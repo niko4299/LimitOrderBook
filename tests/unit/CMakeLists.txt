@@ -29,3 +29,11 @@ target_link_libraries(test_orderbook repository rocksdb data_structures gtest gm
 add_executable(test_trade_repository test_trade_repository.cpp)
 add_test(${test_prefix}test_trade_repository test_trade_repository)
 target_link_libraries(test_trade_repository repository data_structures gtest gmock)
+
+add_executable(test_ringbuffer test_ringbuffer.cpp)
+add_test(${test_prefix}test_ringbuffer test_ringbuffer)
+target_link_libraries(test_ringbuffer gtest gmock)
+
+add_executable(test_exchange test_exchange.cpp)
+add_test(${test_prefix}test_exchange test_exchange)
+target_link_libraries(test_exchange exchange gtest gmock)

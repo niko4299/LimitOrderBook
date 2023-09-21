@@ -18,7 +18,7 @@ class Exchange final {
 
         void cancel_order(std::string& instrument, std::string& order_id);
 
-        void add_instrument(std::string& instrument, std::size_t ringbuffer_size_per_instrument);
+        void add_instrument(std::string& instrument, std::size_t ringbuffer_size_per_instrument, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository);
 
     private:
         std::unordered_map<std::string, std::uint32_t> _instrument_idx{};

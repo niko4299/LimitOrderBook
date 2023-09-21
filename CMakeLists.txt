@@ -20,6 +20,7 @@ find_package(Boost 1.74.0 COMPONENTS system filesystem serialization thread REQU
 
 add_subdirectory(storage)
 add_subdirectory(data_structures)
+add_subdirectory(exchange)
 add_subdirectory(orderbook)
 add_subdirectory(repository)
 add_subdirectory(server)
@@ -59,4 +60,4 @@ include_directories(ROCKSDB_INCLUDE_DIR)
 include_directories(SCYLLA_DRIVER_INCLUDE_DIR)
 add_executable(UnlimitedOrderBook main.cpp)
 add_dependencies(UnlimitedOrderBook rocksdb scylladriver)
-target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook server)
+target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook exchange server)

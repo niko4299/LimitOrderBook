@@ -19,7 +19,7 @@ class OrderBook final{
 
     public:
 
-        OrderBook(std::string&& instrument, float market_price, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository);
+        OrderBook(std::string instrument, float market_price, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository);
 
         Spread get_spread();
 

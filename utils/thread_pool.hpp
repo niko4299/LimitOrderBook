@@ -23,7 +23,7 @@ public:
         }
     }
 
-    void ThreadPool::add_thread(std::size_t ring_buffer_size){
+    void add_thread(std::size_t ring_buffer_size){
         auto rb = std::make_shared<RingBuffer<std::function<void()>>>(ring_buffer_size);
         _task_ring_buffer.emplace_back(rb);
         _workers.emplace_back([this,rb] {
@@ -44,6 +44,6 @@ public:
 
 private:
     std::vector<std::jthread> _workers;
-    std::vector<std::unique_ptr<RingBuffer<std::function<void()>>>> _task_ring_buffer;
+    std::vector<std::shared_ptr<RingBuffer<std::function<void()>>>> _task_ring_buffer;
     std::atomic_bool _stop;
 };

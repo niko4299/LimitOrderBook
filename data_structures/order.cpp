@@ -1,7 +1,7 @@
 #include "order.hpp"
 #include "limit.hpp"
 
-Order::Order(std::string id, std::string& instrument, std::string& user_id, float qty, float price, Side side, OrderParams params,
+Order::Order(std::string id, std::string&& instrument, std::string&& user_id, float qty, float price, Side side, OrderParams params,
              OrderType type)
     : _id{id}
     , _instrument{instrument}
@@ -15,7 +15,7 @@ Order::Order(std::string id, std::string& instrument, std::string& user_id, floa
     , _type{type} {}
 
 // Used for stop orders
-Order::Order(std::string id, std::string& instrument, std::string& user_id, float qty, float price, float stop_price, Side side,
+Order::Order(std::string id, std::string&& instrument, std::string&& user_id, float qty, float price, float stop_price, Side side,
              OrderParams params, OrderType type)
     : _id{id}
     , _instrument{instrument}
