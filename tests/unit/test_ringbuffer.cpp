@@ -2,7 +2,7 @@
 #include <thread>
 #include <vector>
 
-#include "../../utils/ringbuffer.hpp"
+#include "../../src/utils/ringbuffer.hpp"
 
 // Define a test fixture
 class RingBufferTest : public ::testing::Test {

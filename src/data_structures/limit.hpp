@@ -70,5 +70,4 @@ class Limit final {
         double _active_volume{0};
         double _total_volume{0};
 };
-
 #endif

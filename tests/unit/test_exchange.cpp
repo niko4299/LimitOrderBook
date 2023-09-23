@@ -3,75 +3,78 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <functional>
+#include <thread>
+#include <chrono>
 
-#include "../../exchange/exchange.hpp"
+#include "../../src/exchange/exchange.hpp"
 
-class MockTradeRepository : public TradeRepository {
-public:
-    MOCK_CONST_METHOD1(enqueue, void(const Trade& trade));
-};
-
-class MockOrderRepository: public OrderRepository {
-public:
-    MOCK_METHOD(void, enqueue, (std::shared_ptr<Order>& Order), (const));
-};
-
-// Mock OrderRepository and TradeRepository classes if needed
-
-// Define a test fixture
 class ExchangeTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-    }
+    protected:
+        virtual void SetUp() {
+            _order_repository = std::make_shared<OrderRepository>("./db_path_test", 100);
+            _trade_repository = std::make_shared<TradeRepository>("0.0.0.0", 1, 100);
+        }
 
+        virtual void TearDown() {
+            std::filesystem::remove_all(std::filesystem::path("./db_path_test"));
+        }
+
+    std::shared_ptr<OrderRepository> _order_repository;
+    std::shared_ptr<TradeRepository> _trade_repository;
 };
 
-// Test the Exchange class
-// TEST_F(ExchangeTest, AddOrder) {
-    // Exchange exchange({"AAPL", "GOOG"}, 100, std::make_shared<OrderRepository>(), std::make_shared<MockTradeRepository>());
+TEST_F(ExchangeTest, AddOrder) {
+    auto instruments_info = std::vector<std::pair<std::string, float>>{{"AAPL", 1000.0}, {"GOOGL", 1000.0}};
+    auto exchange = std::make_shared<Exchange>(instruments_info, 100, _order_repository, _trade_repository);
 
-    // // Create and add an order to the exchange
-    // auto order = std::make_shared<Order>("AAPL", /* other order parameters */);
-    // exchange.add_order(std::move(order));
+    auto order = std::make_shared<Order>("order_id","AAPL","test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+    exchange->add_order(std::move(order));
 
-    // You can add assertions to verify that the order was added correctly
-    // For example, check if the order is in the order book
-    // ASSERT_TRUE(order_book_contains_order("AAPL", order_id));
-// }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-// TEST_F(ExchangeTest, ModifyOrder) {
-//     Exchange exchange({"AAPL", "GOOG"}, 100, order_repository, trade_repository);
+    ASSERT_TRUE(exchange->get_order("order_id").has_value());
+}
 
-//     // Create and add an order to the exchange
-//     auto order = std::make_shared<Order>("AAPL", /* other order parameters */);
-//     exchange.add_order(std::move(order));
+TEST_F(ExchangeTest, CancelOrder) {
+    auto instruments_info = std::vector<std::pair<std::string, float>>{{"AAPL", 1000.0}, {"GOOGL", 1000.0}};
+    auto exchange = std::make_shared<Exchange>(instruments_info, 100, _order_repository, _trade_repository);
 
-//     // Modify the order
-//     auto modified_order = std::make_shared<Order>("AAPL", /* modified order parameters */);
-//     exchange.modify_order(std::move(modified_order));
+    auto order = std::make_shared<Order>("order_id","AAPL","test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+    exchange->add_order(std::move(order));
 
-//     // You can add assertions to verify that the order was modified correctly
-//     // For example, check if the order in the order book has been updated
-//     // ASSERT_TRUE(order_book_contains_updated_order("AAPL", modified_order_id));
-// }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-// TEST_F(ExchangeTest, CancelOrder) {
-//     Exchange exchange({"AAPL", "GOOG"}, 100, order_repository, trade_repository);
+    exchange->cancel_order(order->get_instrument(),order->get_id());
+   
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-//     // Create and add an order to the exchange
-//     auto order = std::make_shared<Order>("AAPL", /* other order parameters */);
-//     exchange.add_order(std::move(order));
+    auto maybe_order = exchange->get_order("order_id");
 
-//     // Cancel the order
-//     std::string order_id = /* get the order id */;
-//     exchange.cancel_order("AAPL", order_id);
+    ASSERT_TRUE(maybe_order.has_value());
+    ASSERT_TRUE(maybe_order.value()->is_cancelled());
+}
 
-//     // You can add assertions to verify that the order was canceled correctly
-//     // For example, check if the order in the order book has been removed
-//     // ASSERT_FALSE(order_book_contains_order("AAPL", order_id));
-// }
+TEST_F(ExchangeTest, ModifyOrder) {
+    auto instruments_info = std::vector<std::pair<std::string, float>>{{"AAPL", 1000.0}, {"GOOGL", 1000.0}};
+    auto exchange = std::make_shared<Exchange>(instruments_info, 100, _order_repository, _trade_repository);
 
-// Add more test cases as needed
+    auto order = std::make_shared<Order>("order_id","AAPL","test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+    exchange->add_order(std::move(order));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    auto new_qty = 103.5;
+    auto modify_order = std::make_shared<Order>("order_id","AAPL","test_user", new_qty,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+
+    exchange->modify_order(std::move(modify_order));
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    auto maybe_order = exchange->get_order("order_id");
+
+    ASSERT_TRUE(maybe_order.has_value());
+    ASSERT_EQ(maybe_order.value()->get_qty(), new_qty);
+}
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);

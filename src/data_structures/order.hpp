@@ -15,7 +15,6 @@
 
 #include "enums.hpp"
 
-
 class Limit;
 
 class Order final {
@@ -104,5 +103,4 @@ class Order final {
         OrderParams _params;
         OrderType _type;
 };
-
 #endif

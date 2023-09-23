@@ -1,8 +1,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "../../data_structures/limit.hpp"
-#include "../../data_structures/order.hpp"
+#include "../../src/data_structures/limit.hpp"
+#include "../../src/data_structures/order.hpp"
 
 class LimitFixture : public testing::Test {
  protected:

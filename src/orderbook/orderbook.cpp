@@ -85,6 +85,7 @@ void OrderBook::modify_order(std::shared_ptr<Order>&& order) {
             add_limit_order(order, orderbook_entry->second->get_limit_parent(), order->is_buy() ? _bid_limits : _ask_limits);
         }
     }
+    _order_repository->enqueue(order);
 }
 
 void OrderBook::remove_limit_order(std::shared_ptr<Order>& orderbook_entry) {

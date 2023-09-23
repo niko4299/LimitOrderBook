@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "../../orderbook/orderbook.hpp"
+#include "../../src/orderbook/orderbook.hpp"
 
 class OrderBookFixture : public testing::Test  {
     protected:

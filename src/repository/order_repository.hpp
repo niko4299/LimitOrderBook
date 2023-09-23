@@ -1,5 +1,8 @@
+#pragma once
+
 #include <optional>
 #include <filesystem>
+#include <thread>
 
 #include "rocksdb/db.h"
 #include "rocksdb/options.h"
@@ -13,9 +16,10 @@ class OrderRepository{
         
         OrderRepository(std::string&& db_path, std::size_t ringbuffer_size);
 
+        OrderRepository() = default;
         ~OrderRepository();
 
-        void process_message(std::stop_token s);
+        void process_messages(std::stop_token s);
 
         bool save(std::shared_ptr<Order>& order);
 
@@ -31,4 +35,5 @@ class OrderRepository{
     private:
         rocksdb::DB* _db;
         std::unique_ptr<RingBuffer<std::shared_ptr<Order>>> _ring_buffer;
+        std::jthread _thread;
 };

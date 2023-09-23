@@ -2,7 +2,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "../../repository/order_repository.hpp"
+#include "../../src/repository/order_repository.hpp"
 
 class OrderRepositoryFixture : public testing::Test {
  protected:

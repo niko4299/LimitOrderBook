@@ -1,7 +1,6 @@
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "../../repository/trade_repository.hpp"
+#include "../../src/repository/trade_repository.hpp"
 
 class TradeRepositoryFixture : public testing::Test {
     protected:

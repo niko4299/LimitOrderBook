@@ -1,3 +1,5 @@
+#pragma once
+
 #include <optional>
 #include <thread>
 #include <stdexcept>
@@ -11,10 +13,12 @@ class TradeRepository{
     
     public:
         TradeRepository(std::string&& hosts, uint32_t batch_size, std::size_t ringbuffer_size);
+        
+        TradeRepository() = default;
 
         ~TradeRepository();
 
-        void process_message(std::stop_token& s);
+        void process_messages(std::stop_token s);
 
         bool save(Trade trade);
 
@@ -26,6 +30,11 @@ class TradeRepository{
 
         void enqueue(Trade& trade) const;
         
+        TradeRepository(TradeRepository const &) = delete;
+        TradeRepository(TradeRepository &&) = delete;
+        TradeRepository &operator=(TradeRepository const &) = delete;
+        TradeRepository &operator=(TradeRepository &&) = delete;
+
     private:
         CassCluster* _cluster;
         CassSession* _session;
@@ -35,4 +44,5 @@ class TradeRepository{
         const CassPrepared* _prepared_insert_query;
         const char* _query_all = "SELECT * FROM orderbook.trades";
         const CassPrepared* _prepared_select_by_primary_key_query;
+        std::jthread _thread; 
 };

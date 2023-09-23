@@ -24,16 +24,17 @@ TradeRepository::TradeRepository(std::string&& hosts, uint32_t batch_size, std::
 
     _batch_size = batch_size;
     _ring_buffer = std::make_unique<RingBuffer<Trade>>(ringbuffer_size);
+    _thread = std::jthread(std::bind_front(&TradeRepository::process_messages, this));
 }
 
 void TradeRepository::enqueue(Trade& trade) const {
     _ring_buffer->push(trade);
 }
 
-void TradeRepository::process_message(std::stop_token& s){
+void TradeRepository::process_messages(std::stop_token s){
     Trade trade;
     while(!s.stop_requested()){
-        while(_ring_buffer->pop(trade)){
+        if(_ring_buffer->pop(trade)){
             save(trade);
         }
     } 

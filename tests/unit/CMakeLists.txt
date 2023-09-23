@@ -36,4 +36,4 @@ target_link_libraries(test_ringbuffer gtest gmock)
 
 add_executable(test_exchange test_exchange.cpp)
 add_test(${test_prefix}test_exchange test_exchange)
-target_link_libraries(test_exchange exchange gtest gmock)
+target_link_libraries(test_exchange exchange orderbook repository gtest gmock)

@@ -1,6 +1,6 @@
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include "../../storage/rbtree.hpp"
+
+#include "../../src/storage/rbtree.hpp"
 
 class RBTreeFixture : public testing::Test {
  protected:

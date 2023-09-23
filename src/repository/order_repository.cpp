@@ -20,6 +20,7 @@ OrderRepository::OrderRepository(std::string&& db_path, std::size_t ringbuffer_s
     }
 
     _ring_buffer = std::make_unique<RingBuffer<std::shared_ptr<Order>>>(ringbuffer_size);
+    _thread = std::jthread(std::bind_front(&OrderRepository::process_messages, this));
 }
 
 OrderRepository::~OrderRepository() {
@@ -30,10 +31,10 @@ void OrderRepository::enqueue(std::shared_ptr<Order>& order) const {
     _ring_buffer->push(order);
 }
 
-void OrderRepository::process_message(std::stop_token s){
+void OrderRepository::process_messages(std::stop_token s){
     std::shared_ptr<Order> order;
     while(!s.stop_requested()){
-        while(_ring_buffer->pop(order)){
+        if(_ring_buffer->pop(order)){
             save(order);
         }
     } 

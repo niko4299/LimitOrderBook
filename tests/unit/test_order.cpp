@@ -4,8 +4,8 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 
-#include "../../data_structures/order.hpp"
-#include "../../data_structures/limit.hpp"
+#include "../../src/data_structures/order.hpp"
+#include "../../src/data_structures/limit.hpp"
 
 
 class OrderFixture : public testing::Test {

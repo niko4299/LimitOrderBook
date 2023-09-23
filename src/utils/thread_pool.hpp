@@ -30,7 +30,7 @@ public:
             while (!_stop.load()) {
                 std::function<void()> task;
 
-                if (!rb->pop(task)) {
+                if (rb->pop(task)) {
                     task();
                 }
             }
