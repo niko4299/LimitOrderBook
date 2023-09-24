@@ -27,7 +27,7 @@ TEST_F(RingBufferTest, InsertPopMultiSaftey) {
 
     int test_sum = 0;
 
-    for(auto i = 0; i < test_vector.size(); i++){
+    for(std::size_t i = 0; i < test_vector.size(); i++){
         threads.push_back(std::jthread([&](){  
             int n;
             while(true){

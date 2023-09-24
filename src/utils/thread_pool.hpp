@@ -6,44 +6,23 @@
 #include <thread>
 #include <atomic>
 
-#include "ringbuffer.hpp"
+#include "function_task.hpp"
 
 class ThreadPool {
-public:
-    ThreadPool(std::size_t num_instruments, std::size_t ring_buffer_size) : _stop(false) {
-        for (std::size_t i = 0; i < num_instruments; ++i) {
-            add_thread(ring_buffer_size);
-        }
-    }
-
-    ~ThreadPool() {
-        _stop.store(true);
-        for (std::jthread &worker : _workers) {
-            worker.join();
-        }
-    }
-
-    void add_thread(std::size_t ring_buffer_size){
-        auto rb = std::make_shared<RingBuffer<std::function<void()>>>(ring_buffer_size);
-        _task_ring_buffer.emplace_back(rb);
-        _workers.emplace_back([this,rb] {
-            while (!_stop.load()) {
-                std::function<void()> task;
-
-                if (rb->pop(task)) {
-                    task();
-                }
+    public:
+        ThreadPool(std::size_t num_instruments, std::size_t ring_buffer_size) {
+            for (std::size_t i = 0; i < num_instruments; ++i) {
+                _workers.emplace_back(std::make_unique<FunctionTask>(ring_buffer_size));
             }
-        });
-    }
+        }
 
-    template <typename F>
-    void enqueue(std::size_t idx, F&& f) {
-        _task_ring_buffer[idx]->push(std::forward<F>(f));
-    }
+        ~ThreadPool() = default;
 
-private:
-    std::vector<std::jthread> _workers;
-    std::vector<std::shared_ptr<RingBuffer<std::function<void()>>>> _task_ring_buffer;
-    std::atomic_bool _stop;
+        template <typename F>
+        void enqueue(std::size_t idx, F&& f) {
+            _workers[idx]->enqueue(std::forward<F>(f));
+        }
+
+    private:
+        std::vector<std::unique_ptr<FunctionTask>> _workers;
 };
