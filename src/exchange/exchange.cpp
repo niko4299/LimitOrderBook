@@ -15,9 +15,22 @@ void Exchange::add_order(std::shared_ptr<Order>&& order){
     auto& orderbook = _instruments[instrument];
     auto thread_id = _instrument_idx[instrument];
 
-    _thread_pool->enqueue(thread_id, [&orderbook, &order]() {
+    auto task = std::packaged_task<bool(void)>(
+    [&orderbook, &order]() {
         orderbook->add_order(std::move(order));
-    });
+                return true;
+
+        }
+
+    );
+
+    auto future = task.get_future();
+    
+    _thread_pool->enqueue(thread_id,[t = std::make_shared<std::packaged_task<bool(void)>>(std::move(task))]() {
+        (*t)();
+}    );
+
+    auto returned_value = future.get();
 };
 
 void Exchange::modify_order(std::shared_ptr<Order>&& order){

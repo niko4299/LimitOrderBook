@@ -2,6 +2,7 @@
 #include<string>
 #include<memory>
 #include<optional>
+#include<future>
 
 #include "../orderbook/orderbook.hpp"
 #include "../utils/thread_pool.hpp"
