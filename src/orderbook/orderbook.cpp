@@ -30,8 +30,7 @@ void OrderBook::add_order(std::shared_ptr<Order>&& order) {
         }
     }
 
-    bool matched = match_order(order, is_buy ? _ask_limits : _bid_limits);
-    if (matched) {
+    if (match_order(order, is_buy ? _ask_limits : _bid_limits)) {
         return;
     }
 
@@ -40,9 +39,6 @@ void OrderBook::add_order(std::shared_ptr<Order>&& order) {
     } else {
         auto limit = std::make_shared<Limit>(order->get_price());
         add_limit_order(order, limit, is_buy ? _bid_limits : _ask_limits);
-    }
-
-    if (!order->is_cancelled()) {
         _orders[order->get_id()] = order;
     }
 }
@@ -127,10 +123,10 @@ bool OrderBook::match_order(std::shared_ptr<Order>& order, RBTree<std::shared_pt
     }
     );
 
-    bool is_aon = order->has_param(OrderParams::AON);
-    bool is_buy = order->is_buy();
+    const bool is_aon = order->has_param(OrderParams::AON);
+    const bool is_buy = order->is_buy();
     auto order_qty = order->get_qty();
-    auto order_type = order->get_type();
+    const auto order_type = order->get_type();
     float cross_price;
 
     for (auto it = limits.begin(); it.valid(); it++) {
