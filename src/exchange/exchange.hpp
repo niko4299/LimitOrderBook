@@ -6,6 +6,7 @@
 
 #include "../orderbook/orderbook.hpp"
 #include "../utils/thread_pool.hpp"
+#include "../data_structures/enums.hpp"
 
 class Exchange final {
 
@@ -14,17 +15,20 @@ class Exchange final {
 
         ~Exchange() = default;
 
-        void add_order(std::shared_ptr<Order>&& order);
+        OrderStatus add_order(std::shared_ptr<Order>&& order);
 
-        void modify_order(std::shared_ptr<Order>&& order);
+        OrderStatus modify_order(std::shared_ptr<Order>&& order);
 
-        void cancel_order(std::string& instrument, std::string& order_id);
+        OrderStatus cancel_order(std::string& instrument, std::string& order_id);
 
-        void add_instrument(std::string& instrument, std::size_t ringbuffer_size_per_instrument, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository);
+        bool add_instrument(std::string& instrument, std::size_t ringbuffer_size_per_instrument, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository);
 
         std::optional<std::shared_ptr<Order>> get_order(std::string&& order_id);
 
     private:
+        std::future<OrderStatus> enqueue_task(std::uint32_t& thread_id, std::function<OrderStatus(void)>&& task_function);
+
+
         std::unordered_map<std::string, std::uint32_t> _instrument_idx{};
         std::unordered_map<std::string, std::shared_ptr<OrderBook>> _instruments;
         std::unique_ptr<ThreadPool> _thread_pool;

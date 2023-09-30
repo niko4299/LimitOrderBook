@@ -10,54 +10,61 @@ Exchange::Exchange(std::vector<std::pair<std::string,float>>& instruments_info, 
     _trade_repo = trade_repository;
 };
 
-void Exchange::add_order(std::shared_ptr<Order>&& order){
+OrderStatus Exchange::add_order(std::shared_ptr<Order>&& order){
     auto instrument = order->get_instrument();
     auto& orderbook = _instruments[instrument];
     auto thread_id = _instrument_idx[instrument];
 
-    auto task = std::packaged_task<bool(void)>(
-    [&orderbook, &order]() {
-        orderbook->add_order(std::move(order));
-                return true;
+    auto future = enqueue_task(thread_id, [&orderbook, &order](){
+            return orderbook->add_order(std::move(order));;
+        });
 
-        }
-
-    );
-
-    auto future = task.get_future();
-    
-    _thread_pool->enqueue(thread_id,[t = std::make_shared<std::packaged_task<bool(void)>>(std::move(task))]() {
-        (*t)();
-}    );
-
-    auto returned_value = future.get();
+    return future.get();
 };
 
-void Exchange::modify_order(std::shared_ptr<Order>&& order){
+OrderStatus Exchange::modify_order(std::shared_ptr<Order>&& order){
     auto instrument = order->get_instrument();
     auto& orderbook = _instruments[instrument];
     auto thread_id = _instrument_idx[instrument];
 
-    _thread_pool->enqueue(thread_id, [&orderbook, &order]() {
-        orderbook->modify_order(std::move(order));
-    });
+    auto future = enqueue_task(thread_id, [&orderbook, &order]() {
+                return orderbook->modify_order(std::move(order));;
+            });
+
+    return future.get();
 };
 
-void Exchange::cancel_order(std::string& instrument, std::string& order_id){
+OrderStatus Exchange::cancel_order(std::string& instrument, std::string& order_id){
     auto& orderbook = _instruments[instrument];
     auto thread_id = _instrument_idx[instrument];
 
-    _thread_pool->enqueue(thread_id, [&orderbook, &order_id]() {
-        orderbook->cancel_order(std::move(order_id));
+    auto future = enqueue_task(thread_id, [&orderbook, &order_id]() {
+        return orderbook->cancel_order(std::move(order_id));
     });
+
+    return future.get();
 };
 
-void Exchange::add_instrument(std::string& instrument,std::size_t ringbuffer_size_per_instrument, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository){
+bool Exchange::add_instrument(std::string& instrument,std::size_t ringbuffer_size_per_instrument, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository){
         _instrument_idx[instrument] = _instruments.size();
         _instruments.emplace(instrument, std::make_shared<OrderBook>(instrument, 1000, order_repository, trade_repository));
+        
+        return true;
 };
 
 std::optional<std::shared_ptr<Order>> Exchange::get_order(std::string&& order_id) {
     return std::move(_order_repo->get(order_id));
+}
+
+std::future<OrderStatus> Exchange::enqueue_task(std::uint32_t& thread_id, std::function<OrderStatus(void)>&& task_function){
+    auto task = std::packaged_task<OrderStatus()>(
+        std::move(task_function)
+    );
+
+    auto future = task.get_future();
+
+    _thread_pool->enqueue(thread_id,[t = std::make_shared<std::packaged_task<OrderStatus(void)>>(std::move(task))]() {(*t)();});
+
+    return future;
 }
 

@@ -13,3 +13,5 @@ enum class OrderParams : std::uint64_t {
 };
 
 enum class OrderType { MARKET, LIMIT };
+
+enum class OrderStatus{ACCEPTED, MATCHED, NOT_MATCHED, REJECTED, CANCELLED, MODIFIED, NOT_FOUND};
