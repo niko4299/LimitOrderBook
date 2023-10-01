@@ -29,7 +29,9 @@ TEST_F(ExchangeTest, AddOrder) {
     auto exchange = std::make_shared<Exchange>(instruments_info, 100, _order_repository, _trade_repository);
 
     auto order = std::make_shared<Order>("order_id","AAPL","test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
-    exchange->add_order(std::move(order));
+    auto status = exchange->add_order(std::move(order));
+
+    ASSERT_EQ(status, OrderStatus::ACCEPTED);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
@@ -43,12 +45,9 @@ TEST_F(ExchangeTest, CancelOrder) {
     auto order = std::make_shared<Order>("order_id","AAPL","test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
     exchange->add_order(std::move(order));
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
     exchange->cancel_order(order->get_instrument(),order->get_id());
    
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
+       std::this_thread::sleep_for(std::chrono::milliseconds(10));
     auto maybe_order = exchange->get_order("order_id");
 
     ASSERT_TRUE(maybe_order.has_value());

@@ -44,7 +44,7 @@ OrderStatus OrderBook::add_order(std::shared_ptr<Order>&& order) {
     add_limit_order(order, limit, is_buy ? _bid_limits : _ask_limits);
     _orders[order->get_id()] = order;
 
-    return OrderStatus::MATCHED;   
+    return OrderStatus::ACCEPTED;   
 }
 
 void OrderBook::add_limit_order(std::shared_ptr<Order>& order, std::shared_ptr<Limit>& limit, RBTree<std::shared_ptr<Limit>>& limits) {
