@@ -36,6 +36,7 @@ class TradeRepository{
         TradeRepository &operator=(TradeRepository &&) = delete;
 
     private:
+    
         CassCluster* _cluster;
         CassSession* _session;
         uint32_t _batch_size;

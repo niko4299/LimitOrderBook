@@ -58,6 +58,6 @@ FetchContent_MakeAvailable(googletest)
 
 include_directories(ROCKSDB_INCLUDE_DIR)
 include_directories(SCYLLA_DRIVER_INCLUDE_DIR)
-add_executable(UnlimitedOrderBook main.cpp)
+add_executable(UnlimitedOrderBook src/main.cpp)
 add_dependencies(UnlimitedOrderBook rocksdb scylladriver)
 target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook exchange server)

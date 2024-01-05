@@ -118,11 +118,14 @@ void OrderBook::remove_limit_order(std::shared_ptr<Order>& orderbook_entry) {
 }
 
 bool OrderBook::match_order(std::shared_ptr<Order>& order, RBTree<std::shared_ptr<Limit>>& limits) {
+    const bool is_aon = order->has_param(OrderParams::AON);
+    const bool is_buy = order->is_buy();
+    const auto order_type = order->get_type();
     std::vector<std::shared_ptr<Limit>> filled_limits;
     std::vector<std::shared_ptr<Order>> changed_orders;
     Defer([&](){    
         for (auto& limit : filled_limits) {
-        limits.remove(limit);
+            limits.remove(limit);
         };
 
         for(auto& order: changed_orders){         
@@ -131,79 +134,80 @@ bool OrderBook::match_order(std::shared_ptr<Order>& order, RBTree<std::shared_pt
     }
     );
 
-    const bool is_aon = order->has_param(OrderParams::AON);
-    const bool is_buy = order->is_buy();
-    auto order_qty = order->get_qty();
-    const auto order_type = order->get_type();
-    float cross_price;
-
     for (auto it = limits.begin(); it.valid(); it++) {
         auto& opposite_limit = *it;
 
-        if (is_aon && opposite_limit->get_active_volume() < order_qty) {
+        if (is_aon && opposite_limit->get_active_volume() < order->get_qty()) {
             continue;
         }
 
-        switch (order_type) {
-        case OrderType::MARKET:
-            cross_price = opposite_limit->get_price();
-            break;
-        case OrderType::LIMIT:
-            if (is_buy) {
-                if (order->get_price() < opposite_limit->get_price()) {
-                    return false;
-                } else {
-                    cross_price = order->get_price();
-                }
-            } else {
-                if (order->get_price() > opposite_limit->get_price()) {
-                    return false;
-                } else {
-                    cross_price = opposite_limit->get_price();
-                }
-            }
+        auto cross_price = calculate_cross_price(order, opposite_limit, order_type, is_buy);
+        if(!cross_price.has_value()){
             break;
         }
 
-        auto curr_order = opposite_limit->_head;
-
-        while (order_qty > 0 && curr_order) {
-            auto curr_order_qty = curr_order->get_qty();
-            auto before_trade = order_qty;
-
-            if (curr_order_qty >= order_qty) {
-                curr_order->decrease_qty(order_qty);
-                order_qty = 0;
-            } else if (!is_aon) {
-                order_qty -= curr_order_qty;
-                curr_order->fill();
-            }
-            
-            // Record a trade
-            if(before_trade != order_qty){
-                handle_trade(order,curr_order, before_trade - order_qty, cross_price);
-            }
-
-            if(curr_order->is_fullfilled()){
-                remove_limit_order(curr_order);
-            }
-
-            changed_orders.push_back(curr_order);
-            curr_order = curr_order->_next;
-        }
-
+        process_limit_order(opposite_limit, order, *cross_price, changed_orders);
         if (opposite_limit->empty()) {
             filled_limits.push_back(opposite_limit);
         }
 
-        set_market_price(cross_price);
-
-        if (order_qty == 0) {
-            break;
+        set_market_price(*cross_price);
+        if (order->get_qty() == 0) {
+            return true;
         }
     }
 
-    return order_qty == 0;
+    return false;
+}
+
+std::optional<float> OrderBook::calculate_cross_price(const std::shared_ptr<Order>& order,
+                                                    const std::shared_ptr<Limit>& opposite_limit,
+                                                    OrderType order_type,
+                                                    bool is_buy) {
+    if ((is_buy && order->get_price() < opposite_limit->get_price()) ||
+               (!is_buy && order->get_price() > opposite_limit->get_price())) {
+        return std::nullopt;
+    } else if (order_type == OrderType::MARKET) {
+        return opposite_limit->get_price();
+    } else if (order_type == OrderType::LIMIT){
+        return is_buy ? order->get_price() : opposite_limit->get_price();
+    }
+
+    return std::nullopt;
+}
+
+void OrderBook::process_limit_order(std::shared_ptr<Limit>& opposite_limit, std::shared_ptr<Order>& order, float cross_price, std::vector<std::shared_ptr<Order>>& changed_orders) {
+    auto curr_order = opposite_limit->_head;
+    while (order->get_qty() > 0 && curr_order) {
+        resolve_orders(curr_order, order, cross_price, changed_orders);
+
+        if (curr_order->is_fullfilled()) {
+            remove_limit_order(curr_order);
+        }
+
+        curr_order = curr_order->_next;
+    }
+}
+
+void OrderBook::resolve_orders(std::shared_ptr<Order>& curr_order,
+                               std::shared_ptr<Order>& order, float cross_price,
+                               std::vector<std::shared_ptr<Order>>& changed_orders) {
+    auto curr_order_qty = curr_order->get_qty();
+    auto order_qty = order->get_qty();
+    auto before_trade = order_qty;
+
+    if (curr_order_qty >= order_qty) {
+        curr_order->decrease_qty(order_qty);
+        order->fill();
+    } else if (!order->has_param(OrderParams::AON)) {
+        order->decrease_qty(curr_order_qty);
+        curr_order->fill();
+    } 
+
+    if (order_qty != before_trade) {
+        handle_trade(order, curr_order, before_trade - order_qty, cross_price);
+        changed_orders.push_back(curr_order);
+    }
 }
 
 Spread OrderBook::get_spread() {

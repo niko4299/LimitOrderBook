@@ -1,10 +1,10 @@
 #include<iostream>
 #include <functional>
 #include<memory>
-#include "src/data_structures/order.hpp"
-#include "src/data_structures/trade.hpp"
-#include "src/orderbook/orderbook.hpp"
-#include "src/utils/ringbuffer.hpp"
+#include "data_structures/order.hpp"
+#include "data_structures/trade.hpp"
+#include "orderbook/orderbook.hpp"
+#include "utils/ringbuffer.hpp"
 
 int main(int argc, char* argv[]) {
     auto ring_buf = RingBuffer<std::function<void()>>{10};        
