@@ -61,6 +61,21 @@ class OrderBook final{
         void add_ask_stop_orders_above(float price);
 
         void handle_trade(std::shared_ptr<Order>& recieved_order, std::shared_ptr<Order>& orderbook_entry, float volume, float price);
+                
+        std::optional<float> calculate_cross_price(const std::shared_ptr<Order>& order,
+                                           const std::shared_ptr<Limit>& opposite_limit,
+                                           OrderType order_type, 
+                                           bool is_buy);
+
+        
+        void process_limit_order(std::shared_ptr<Limit>& opposite_limit,
+                                            std::shared_ptr<Order>& order, float cross_price, 
+                                            std::vector<std::shared_ptr<Order>>& changed_orders);
+
+
+        void resolve_orders(std::shared_ptr<Order>& curr_order,
+                         std::shared_ptr<Order>& order, float cross_price,
+                         std::vector<std::shared_ptr<Order>>& changed_orders);
 
         std::string _instrument;
         float _market_price;

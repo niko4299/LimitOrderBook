@@ -34,6 +34,7 @@ class OrderRepository{
 
     private:
         rocksdb::DB* _db;
+        rocksdb::ColumnFamilyHandle* _cf;
         std::unique_ptr<RingBuffer<std::shared_ptr<Order>>> _ring_buffer;
         std::jthread _thread;
 };

@@ -51,7 +51,7 @@ class Order final {
         bool is_cancelled();
 
         float get_qty();
-
+        
         void fill();
         
         bool is_fullfilled();
