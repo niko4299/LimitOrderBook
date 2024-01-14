@@ -46,10 +46,10 @@ OrderStatus Exchange::cancel_order(std::string& instrument, std::string& order_i
 };
 
 bool Exchange::add_instrument(std::string& instrument,std::size_t ringbuffer_size_per_instrument, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository){
-        _instrument_idx[instrument] = _instruments.size();
-        _instruments.emplace(instrument, std::make_shared<OrderBook>(instrument, 1000, order_repository, trade_repository));
-        
-        return true;
+    _instrument_idx[instrument] = _instruments.size();
+    _instruments.emplace(instrument, std::make_shared<OrderBook>(instrument, 1000, order_repository, trade_repository));
+    
+    return true;
 };
 
 std::optional<std::shared_ptr<Order>> Exchange::get_order(std::string&& order_id) {

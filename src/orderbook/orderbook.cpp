@@ -180,7 +180,6 @@ void OrderBook::process_limit_order(std::shared_ptr<Limit>& opposite_limit, std:
     auto curr_order = opposite_limit->_head;
     while (order->get_qty() > 0 && curr_order) {
         resolve_orders(curr_order, order, cross_price, changed_orders);
-
         if (curr_order->is_fullfilled()) {
             remove_limit_order(curr_order);
         }

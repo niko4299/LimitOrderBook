@@ -34,6 +34,7 @@ ExternalProject_Add(
     GIT_REPOSITORY "https://github.com/facebook/rocksdb.git"
     GIT_TAG v8.5.3
 )
+set(ROCKSDB_INCLUDE_DIR ${ROCKSDB_ROOT}/src/rocksdb/include)
 
 set(SCYLLA_DRIVER_ROOT ${PROJECT_BINARY_DIR}/scylladriver)
 ExternalProject_Add(
@@ -43,9 +44,6 @@ ExternalProject_Add(
     GIT_REPOSITORY "https://github.com/scylladb/cpp-driver.git"
 )
 
-enable_testing()
-
-set(ROCKSDB_INCLUDE_DIR ${ROCKSDB_ROOT}/src/rocksdb/include)
 set(SCYLLA_DRIVER_INCLUDE_DIR ${SCYLLA_DRIVER_ROOT}/src/scylladriver/include)
 set(SCYLLA_DRIVER_LIBRARIES ${SCYLLA_DRIVER_ROOT}/src/scylladriver-build/libscylla-cpp-driver.so)
 
@@ -54,10 +52,30 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG        v1.13.0
 )
-FetchContent_MakeAvailable(googletest)
+
+set(Seastar_TESTING OFF CACHE BOOL "" FORCE)
+set(Seastar_API_LEVEL 6 CACHE STRING "" FORCE)
+set(Seastar_CXX_FLAGS -Wno-error)
+
+FetchContent_Declare(
+    seastar
+    GIT_REPOSITORY https://github.com/scylladb/seastar
+    GIT_SHALLOW ON
+    GIT_SUBMODULES ""
+    GIT_PROGRESS TRUE
+    USES_TERMINAL_DOWNLOAD TRUE
+    OVERRIDE_FIND_PACKAGE
+    SYSTEM
+    PATCH_COMMAND sed -i "s/add_subdirectory (tests/# add_subdirectory (tests/g" CMakeLists.txt
+)
+
+FetchContent_MakeAvailable(seastar googletest)
+# FetchContent_MakeAvailable(seastar)
+# FetchContent_MakeAvailable(seastar)
+# enable_testing()
 
 include_directories(ROCKSDB_INCLUDE_DIR)
 include_directories(SCYLLA_DRIVER_INCLUDE_DIR)
 add_executable(UnlimitedOrderBook src/main.cpp)
 add_dependencies(UnlimitedOrderBook rocksdb scylladriver)
-target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook exchange server)
+target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook exchange seastar)

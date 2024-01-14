@@ -1,14 +1,17 @@
 #pragma once
-#include <boost/beast/core.hpp>
-#include <boost/beast/websocket.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/beast/ssl.hpp>
-#include <boost/beast/websocket/ssl.hpp>
 #include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
+
+#include <boost/beast/core.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/asio/strand.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/beast/websocket/ssl.hpp>
+
+#include "../exchange/exchange.hpp"
 
 namespace beast = boost::beast;      
 namespace http = beast::http;           
@@ -44,6 +47,7 @@ class WebSocketClient : public std::enable_shared_from_this<WebSocketClient>{
         virtual void on_fail(beast::error_code ec, const char* error_message);
 
     private:
+
         tcp::resolver resolver_;
         websocket::stream<beast::ssl_stream<beast::tcp_stream>> ws_;
         beast::flat_buffer buffer_;

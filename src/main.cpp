@@ -1,23 +1,47 @@
-#include<iostream>
-#include <functional>
-#include<memory>
-#include "data_structures/order.hpp"
-#include "data_structures/trade.hpp"
-#include "orderbook/orderbook.hpp"
-#include "utils/ringbuffer.hpp"
+#include <seastar/core/seastar.hh>
+#include <seastar/core/future-util.hh>
+#include <seastar/core/app-template.hh>
+#include <seastar/http/routes.hh>
+#include <seastar/http/request.hh>
+#include <seastar/http/function_handlers.hh>
+#include <seastar/http/httpd.hh>
+#include <seastar/core/sleep.hh>
+#include <seastar/coroutine/all.hh>
+#include <seastar/util/log.hh>
+#include <iostream>
+#include <chrono>
 
-int main(int argc, char* argv[]) {
-    auto ring_buf = RingBuffer<std::function<void()>>{10};        
-    auto order_repo = std::make_shared<OrderRepository>("./db_path",1024);
-    auto trade_repo = std::make_shared<TradeRepository>("0.0.0.0",100,1024);
+using namespace std::chrono_literals;
 
-    auto orderbook = std::make_unique<OrderBook>("eth",1000.0,order_repo,trade_repo);
-    auto order = std::make_shared<Order>("1","f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::GTC, OrderType::LIMIT);
-    ring_buf.push([&orderbook, order]() mutable {
-        orderbook->add_order(std::move(order));
+using namespace seastar;
+using namespace seastar::httpd;
+
+logger applog{"http-requests"};
+
+void set_routes(routes& r) {
+    function_handler* h1 = new function_handler([](std::unique_ptr<http::request> req) -> future<json::json_return_type> {
+        applog.info("{} slow", req->get_url());
+        co_await seastar::sleep(10s);
+        co_return json::json_return_type("json-future");
     });
-    std::function<void()> f;
-    ring_buf.pop(f);
-    f();
-    std::cout<<orderbook->get_bids().size();
+    function_handler* h2 = new function_handler([](std::unique_ptr<http::request> req) -> future<json::json_return_type> {
+        applog.info("{} fast", req->get_url());
+        co_return json::json_return_type("json-future");
+    });
+    r.add(operation_type::GET, url("/slow"), h1);
+    r.add(operation_type::GET, url("/fast"), h2);
+}
+
+int main(int argc, char** argv) {
+    app_template app;
+    return app.run(argc, argv, [] () -> future<int> {
+        auto server = new http_server("seastar");
+        set_routes(server->_routes);
+        co_await server->listen(seastar::make_ipv4_address({1234}));
+
+        co_await seastar::sleep(10000s);
+        co_await server->stop();
+        delete server;
+        co_return 0;
+    });
 }
