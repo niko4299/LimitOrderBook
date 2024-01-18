@@ -70,12 +70,10 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(seastar googletest)
-# FetchContent_MakeAvailable(seastar)
-# FetchContent_MakeAvailable(seastar)
-# enable_testing()
+enable_testing()
 
 include_directories(ROCKSDB_INCLUDE_DIR)
 include_directories(SCYLLA_DRIVER_INCLUDE_DIR)
 add_executable(UnlimitedOrderBook src/main.cpp)
 add_dependencies(UnlimitedOrderBook rocksdb scylladriver)
-target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook exchange seastar)
+target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook exchange seastar gflags)
