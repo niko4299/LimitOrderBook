@@ -4,6 +4,8 @@
 #include <iostream>
 #include <gflags/gflags.h>
 
+#include "utils/seastar_signal_catcher.hpp"
+
 DEFINE_string(server_address, "0.0.0.0", "IP address on which server will listen.");
 DEFINE_uint32(server_port, 8000, "Port on which the server will listen.");
 
@@ -17,7 +19,7 @@ int main(int argc, char** argv) {
         uint16_t port = config["port"].as<uint16_t>();
         std::string address = config["address"].as<std::string>();
 
-        stop_signal stop_signal;
+        StopSignal stop_signal;
         co_await stop_signal.wait();
         co_return 0;
     });

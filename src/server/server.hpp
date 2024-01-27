@@ -1,5 +1,6 @@
 #include <iostream>
 #include <chrono>
+#include <memory>
 
 #include <seastar/core/seastar.hh>
 #include <seastar/core/future-util.hh>
@@ -11,29 +12,29 @@
 #include <seastar/core/sleep.hh>
 #include <seastar/coroutine/all.hh>
 #include <seastar/util/log.hh>
-#include <seastar/apps/lib/stop_signal.hh>
 
 #include "../exchange/exchange.hpp"
+#include "handlers/order_handler.hpp"
 
-final class SeastarServer{
+class SeastarServer {
 
     public:
-        SeastarServer(std::string_view&& name, std::string_view&& address, std::uint16_t port, std::shared_ptr<Exchange>& exchange);
+        SeastarServer(std::string name, std::string address, std::uint16_t port, std::shared_ptr<Exchange>& exchange);
 
-        void set_routes(seastar::httpd::routes& routes);
+        void set_routes();
 
         void start();
 
         void stop();
-    
+
     private:
 
-        std::shared_ptr<seastar::httpd::match_rule> create_new_order_route();
+        void set_routes(seastar::httpd::routes& routes);
 
+        seastar::httpd::match_rule* create_order_routes();
 
-        std::unique_ptr<seastar::httpd::http_server> _server;
-        std::string_view _name;
-        std::string_view _address;
+        std::string _address;
         std::uint16_t _port;
-        std::shared_ptr<Exchange>& exchange;
-}
+        OrderHandler _order_handler;
+        std::unique_ptr<seastar::httpd::http_server> _server;
+};

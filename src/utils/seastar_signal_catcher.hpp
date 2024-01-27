@@ -1,10 +1,14 @@
-class stop_signal {
+#include <seastar/core/sharded.hh>
+#include <seastar/core/reactor.hh>
+#include <seastar/core/condition-variable.hh>
+
+class StopSignal {
     public:
-        stop_signal() {
+        StopSignal() {
             seastar::engine().handle_signal(SIGINT, [this] { signaled(); });
             seastar::engine().handle_signal(SIGTERM, [this] { signaled(); });
         }
-        ~stop_signal() {
+        ~StopSignal() {
             seastar::engine().handle_signal(SIGINT, [] {});
             seastar::engine().handle_signal(SIGTERM, [] {});
         }

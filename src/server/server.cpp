@@ -1,40 +1,38 @@
 #include "server.hpp"
 
 
-SeastarServer::SeastarServer(std::string_view&& name, std::string_view&& address, std::uint16_t port, std::shared_ptr<Exchange>& exchange): _name{name}, _address{address}, _port{port}, _echange{exchange} {
+SeastarServer::SeastarServer(std::string name, std::string address, std::uint16_t port, std::shared_ptr<Exchange>& exchange): _address{address}, _port{port}, _order_handler(exchange) {
     _server = std::make_unique<seastar::httpd::http_server>(name);
+}
+
+
+void  SeastarServer::set_routes(){
     set_routes(_server->_routes);
 }
 
 void SeastarServer::set_routes(seastar::httpd::routes& routes){
     seastar::httpd::function_handler* h1 = new seastar::httpd::function_handler([](std::unique_ptr<seastar::http::request> req) -> seastar::future<seastar::json::json_return_type> {
-        applog.info("{} slow", req->get_url());
-        co_await seastar::sleep(10s);
+        // applog.info("{} slow", req->get_url());
         co_return seastar::json::json_return_type("json-future");
     });
 
-    auto create_new_order_route = create_new_order_route();
-    routes.add(getConnectedById, seastar::httpd::operation_type::GET);
+    auto new_order_route = create_order_routes();
+    routes.add(new_order_route, seastar::httpd::operation_type::GET);
     
     seastar::httpd::function_handler* h2 = new seastar::httpd::function_handler([](std::unique_ptr<seastar::http::request> req) -> seastar::future<seastar::json::json_return_type> {
-        applog.info("{} fast", req->get_query_param("value"));
-        req->
+        // applog.info("{} fast", req->get_query_param("value"));
+        // // req->
         
         co_return seastar::json::json_return_type("json-future");
     });
 
-    r.add(seastar::httpd::operation_type::GET, seastar::httpd::url("/slow"), h1);
-    r.add(seastar::httpd::operation_type::GET, seastar::httpd::url("/fast"), h2);
+    routes.add(seastar::httpd::operation_type::GET, seastar::httpd::url("/slow"), h1);
+    routes.add(seastar::httpd::operation_type::GET, seastar::httpd::url("/fast"), h2);
 }
 
-std::shared_ptr<seastar::httpd::match_rule> SeastarServer::create_new_order_route(){
-    auto function = [_exchange](std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> reply) -> seastar::future<std::unique_ptr<seastar::http::reply>>{
-        auto& instrument = req->param["instrument"];
-        req->content;
-    };
+seastar::httpd::match_rule* SeastarServer::create_order_routes(){
     
-    auto new_order_handler = std::shared_ptr<Handler>(std::forward(function));
-    auto new_route = std::shared_ptr<seastar::httpd::match_rule>(new_order_handler);
+    auto new_route = new seastar::httpd::match_rule(&_order_handler);
     new_route->add_str("/orders/");
     new_route->add_param("instrument");
     new_route->add_str("/new");
@@ -44,10 +42,10 @@ std::shared_ptr<seastar::httpd::match_rule> SeastarServer::create_new_order_rout
 
 
 void SeastarServer::start(){
-    co_await server->listen(seastar::make_ipv4_address({_address, _port}));
+   auto error_code = _server->listen(seastar::make_ipv4_address({_address, _port}));
 }
 
 
 void SeastarServer::stop(){
-    co_await server->stop();
+    auto error_code = _server->stop();
 }
