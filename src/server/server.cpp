@@ -32,7 +32,7 @@ void SeastarServer::set_routes(seastar::httpd::routes& routes){
 
 seastar::httpd::match_rule* SeastarServer::create_order_routes(){
     
-    auto new_route = new seastar::httpd::match_rule(&_order_handler);
+    auto new_route = new seastar::httpd::match_rule(&_order_handler._get_order_handler);
     new_route->add_str("/orders/");
     new_route->add_param("instrument");
     new_route->add_str("/new");
