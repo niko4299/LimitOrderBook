@@ -69,11 +69,18 @@ FetchContent_Declare(
     PATCH_COMMAND sed -i "s/add_subdirectory (tests/# add_subdirectory (tests/g" CMakeLists.txt
 )
 
-FetchContent_MakeAvailable(seastar googletest)
+FetchContent_Declare(
+    simdjson
+    GIT_REPOSITORY "https://github.com/simdjson/simdjson"
+    GIT_TAG v3.6.4
+)
+
+
+FetchContent_MakeAvailable(seastar googletest simdjson)
 enable_testing()
 
 include_directories(ROCKSDB_INCLUDE_DIR)
 include_directories(SCYLLA_DRIVER_INCLUDE_DIR)
 add_executable(UnlimitedOrderBook src/main.cpp)
 add_dependencies(UnlimitedOrderBook rocksdb scylladriver)
-target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook exchange server seastar gflags)
+target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook exchange server seastar simdjson gflags)

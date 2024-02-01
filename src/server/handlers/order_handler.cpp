@@ -1,13 +1,17 @@
 #include "order_handler.hpp"
 
-OrderHandler::OrderHandler(std::shared_ptr<Exchange>& exchange): _exchange{exchange}, _new_order_handler(*this), _get_order_handler(*this), _update_order_handler(*this) {}
+OrderHandler::OrderHandler(std::shared_ptr<Exchange>& exchange): _new_order_handler(*this), _update_order_handler(*this), _get_order_handler(*this), _exchange{exchange} {}
 
 
 OrderHandler::NewOrderHandler::NewOrderHandler(OrderHandler& parent): _parent{parent} {}
 
 
 seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::NewOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
-        rep->write_body("json", seastar::json::stream_object("TEST"));
+        simdjson::ondemand::parser parser;
+        simdjson::padded_string json(req->content.c_str(),req->content.size()); 
+        simdjson::ondemand::document doc = parser.iterate(json);
+        double x = doc["x"];
+        rep->write_body("json", seastar::json::stream_object(x));
         
         return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
 }

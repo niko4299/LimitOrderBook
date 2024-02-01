@@ -1,6 +1,8 @@
 #include <memory>
 
 #include <seastar/http/httpd.hh>
+#include <seastar/http/json_path.hh>
+#include <simdjson.h>
 
 #include "../../exchange/exchange.hpp"
 
