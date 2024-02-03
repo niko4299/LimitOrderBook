@@ -14,6 +14,18 @@ Order::Order(std::string id, std::string&& instrument, std::string&& user_id, fl
     , _params{params}
     , _type{type} {}
 
+Order::Order(std::string&& instrument, std::string&& user_id, float qty, float price, Side side, OrderParams params,
+             OrderType type)
+    : _instrument{instrument}
+    , _user_id{user_id}
+    , _timestamp{time(0)}
+    , _qty{qty}
+    , _current_qty{qty}
+    , _price{price}
+    , _side{side}
+    , _params{params}
+    , _type{type} {}
+
 // Used for stop orders
 Order::Order(std::string id, std::string&& instrument, std::string&& user_id, float qty, float price, float stop_price, Side side,
              OrderParams params, OrderType type)
@@ -28,6 +40,24 @@ Order::Order(std::string id, std::string&& instrument, std::string&& user_id, fl
     , _side{side}
     , _params{params}
     , _type{type} {}
+
+Order::Order(std::string&& instrument, std::string&& user_id, float qty, float price, float stop_price, Side side,
+             OrderParams params, OrderType type)
+    : _instrument{instrument}
+    , _user_id{user_id}
+    , _timestamp{time(0)}
+    , _qty{qty}
+    , _current_qty{qty}
+    , _price{price}
+    , _stop_price{stop_price}
+    , _side{side}
+    , _params{params}
+    , _type{type} {}
+
+
+void Order::set_id(std::string& id){
+    _id = id;
+}
 
 std::string& Order::get_id() {
     return _id;

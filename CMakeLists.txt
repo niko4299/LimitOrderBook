@@ -24,6 +24,7 @@ add_subdirectory(src/exchange)
 add_subdirectory(src/orderbook)
 add_subdirectory(src/repository)
 add_subdirectory(src/server)
+add_subdirectory(src/utils)
 add_subdirectory(tests)
 
 set(ROCKSDB_ROOT ${PROJECT_BINARY_DIR}/rocksdb)
@@ -46,6 +47,20 @@ ExternalProject_Add(
 
 set(SCYLLA_DRIVER_INCLUDE_DIR ${SCYLLA_DRIVER_ROOT}/src/scylladriver/include)
 set(SCYLLA_DRIVER_LIBRARIES ${SCYLLA_DRIVER_ROOT}/src/scylladriver-build/libscylla-cpp-driver.so)
+
+set(UUID_ROOT ${PROJECT_BINARY_DIR}/uuid)
+ExternalProject_Add(
+  uuid
+  PREFIX ${UUID_ROOT}
+  INSTALL_DIR ${UUID_ROOT}
+  GIT_REPOSITORY https://github.com/mariusbancila/stduuid.git
+  GIT_TAG v1.2.3
+)
+
+set(UUID_INCLUDE_DIR ${UUID_ROOT}/include)
+target_include_directories(utils INTERFACE ${UUID_INCLUDE_DIR}/gsl)
+target_include_directories(utils INTERFACE ${UUID_INCLUDE_DIR})
+add_dependencies(utils uuid)
 
 FetchContent_Declare(
   googletest
@@ -73,8 +88,8 @@ FetchContent_Declare(
     simdjson
     GIT_REPOSITORY "https://github.com/simdjson/simdjson"
     GIT_TAG v3.6.4
+    GIT_SHALLOW ON
 )
-
 
 FetchContent_MakeAvailable(seastar googletest simdjson)
 enable_testing()
@@ -83,4 +98,4 @@ include_directories(ROCKSDB_INCLUDE_DIR)
 include_directories(SCYLLA_DRIVER_INCLUDE_DIR)
 add_executable(UnlimitedOrderBook src/main.cpp)
 add_dependencies(UnlimitedOrderBook rocksdb scylladriver)
-target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook exchange server seastar simdjson gflags)
+target_link_libraries(UnlimitedOrderBook PRIVATE data_structures storage repository orderbook exchange server seastar simdjson utils gflags)

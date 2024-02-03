@@ -1,6 +1,6 @@
 #include "order_handler.hpp"
 
-OrderHandler::OrderHandler(std::shared_ptr<Exchange>& exchange): _new_order_handler(*this), _update_order_handler(*this), _get_order_handler(*this), _exchange{exchange} {}
+OrderHandler::OrderHandler(std::shared_ptr<Exchange>& exchange): _new_order_handler(*this), _update_order_handler(*this), _get_order_handler(*this), _exchange{exchange}, _uuid_generator{}, _order_mapper{} {} 
 
 
 OrderHandler::NewOrderHandler::NewOrderHandler(OrderHandler& parent): _parent{parent} {}

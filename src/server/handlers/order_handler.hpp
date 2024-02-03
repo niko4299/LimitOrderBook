@@ -5,6 +5,8 @@
 #include <simdjson.h>
 
 #include "../../exchange/exchange.hpp"
+#include "../../utils/uuid_generator.hpp"
+#include "../../mappers/orderjson_order_mapper.hpp"
 
 class OrderHandler {
     class NewOrderHandler : public seastar::httpd::handler_base{
@@ -50,4 +52,6 @@ class OrderHandler {
   private:
 
     std::shared_ptr<Exchange>& _exchange;
+    UUIDGenerator _uuid_generator;
+    OrderJsonOrderMapper _order_mapper;
 };
