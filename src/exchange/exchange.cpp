@@ -10,8 +10,7 @@ Exchange::Exchange(std::vector<std::pair<std::string,float>>& instruments_info, 
     _trade_repo = trade_repository;
 };
 
-OrderStatus Exchange::add_order(std::shared_ptr<Order>&& order){
-    auto instrument = order->get_instrument();
+OrderStatus Exchange::add_order(std::string& instrument, std::shared_ptr<Order>&& order){
     auto& orderbook = _instruments[instrument];
     auto thread_id = _instrument_idx[instrument];
 
@@ -22,8 +21,7 @@ OrderStatus Exchange::add_order(std::shared_ptr<Order>&& order){
     return future.get();
 };
 
-OrderStatus Exchange::modify_order(std::shared_ptr<Order>&& order){
-    auto instrument = order->get_instrument();
+OrderStatus Exchange::modify_order(std::string& instrument, std::shared_ptr<Order>&& order){
     auto& orderbook = _instruments[instrument];
     auto thread_id = _instrument_idx[instrument];
 

@@ -17,9 +17,9 @@ class Exchange final {
 
         ~Exchange() = default;
 
-        OrderStatus add_order(std::shared_ptr<Order>&& order);
+        OrderStatus add_order(std::string& instrument, std::shared_ptr<Order>&& order);
 
-        OrderStatus modify_order(std::shared_ptr<Order>&& order);
+        OrderStatus modify_order(std::string& instrument, std::shared_ptr<Order>&& order);
 
         OrderStatus cancel_order(std::string& instrument, std::string& order_id);
 

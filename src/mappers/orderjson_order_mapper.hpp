@@ -8,7 +8,7 @@ class OrderJsonOrderMapper {
     public: 
         explicit OrderJsonOrderMapper() = default;
         
-        std::shared_ptr<Order> map_order(simdjson::ondemand::document& order_json){
+        std::shared_ptr<Order> map_json_to_order(simdjson::ondemand::document& order_json){
             std::string_view instrument = order_json["instrument"];
             std::string_view user_id = order_json["user_id"];
             double qty = order_json["qty"];
@@ -19,10 +19,10 @@ class OrderJsonOrderMapper {
             if (params == OrderParams::STOP){
                 double stop_price = order_json["stop_price"];
 
-                return std::make_shared<Order>(std::move(instrument), std::move(user_id), qty, price, stop_price, order_side, params, type);    
+                return std::make_shared<Order>(instrument, user_id,  static_cast<float>(qty), static_cast<float>(price), static_cast<float>(stop_price), order_side, params, type);    
             }
 
-            return std::make_shared<Order>(std::move(instrument), std::move(user_id), qty, price, order_side, params, type);    
+            return std::make_shared<Order>(instrument, user_id, static_cast<float>(qty), static_cast<float>(price), order_side, params, type);    
         }
 
     private:

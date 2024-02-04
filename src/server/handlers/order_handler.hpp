@@ -8,6 +8,9 @@
 #include "../../utils/uuid_generator.hpp"
 #include "../../mappers/orderjson_order_mapper.hpp"
 
+static inline const seastar::sstring ORDER_ID_KEY = seastar::sstring ("instrument");
+static inline const seastar::sstring INSTRUMENT_KEY = seastar::sstring ("order_id");
+
 class OrderHandler {
     class NewOrderHandler : public seastar::httpd::handler_base{
       public:
@@ -36,6 +39,15 @@ class OrderHandler {
         OrderHandler& _parent;
     };
 
+    class CancelOrderHandler : public seastar::httpd::handler_base{
+      public:
+          explicit CancelOrderHandler(OrderHandler& parent);
+      private:
+        seastar::future<std::unique_ptr<seastar::http::reply>> handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) override;
+
+        OrderHandler& _parent;
+    };
+
 
   public:
     explicit OrderHandler(std::shared_ptr<Exchange>& exchange);
@@ -49,6 +61,7 @@ class OrderHandler {
     NewOrderHandler _new_order_handler;
     UpdateOrderHandler _update_order_handler;
     GetOrderHandler _get_order_handler;
+    CancelOrderHandler _cancel_order_handler;
   private:
 
     std::shared_ptr<Exchange>& _exchange;

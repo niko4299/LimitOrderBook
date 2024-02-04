@@ -1,6 +1,6 @@
 #include "order_handler.hpp"
 
-OrderHandler::OrderHandler(std::shared_ptr<Exchange>& exchange): _new_order_handler(*this), _update_order_handler(*this), _get_order_handler(*this), _exchange{exchange}, _uuid_generator{}, _order_mapper{} {} 
+OrderHandler::OrderHandler(std::shared_ptr<Exchange>& exchange): _new_order_handler(*this), _update_order_handler(*this), _get_order_handler(*this), _cancel_order_handler(*this), _exchange{exchange}, _uuid_generator{}, _order_mapper{} {} 
 
 
 OrderHandler::NewOrderHandler::NewOrderHandler(OrderHandler& parent): _parent{parent} {}
@@ -8,10 +8,14 @@ OrderHandler::NewOrderHandler::NewOrderHandler(OrderHandler& parent): _parent{pa
 
 seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::NewOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
         simdjson::ondemand::parser parser;
+        std::string instrument = req->param[INSTRUMENT_KEY];
         simdjson::padded_string json(req->content.c_str(),req->content.size()); 
         simdjson::ondemand::document doc = parser.iterate(json);
-        double x = doc["x"];
-        rep->write_body("json", seastar::json::stream_object(x));
+        auto order = _parent._order_mapper.map_json_to_order(doc);
+        order->set_id(_parent._uuid_generator.generate());
+        auto order_status = _parent._exchange->add_order(instrument, std::move(order));
+
+        // rep->write_body("json", seastar::json::stream_object(x));
         
         return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
 }
@@ -19,7 +23,20 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::NewOrderHan
 OrderHandler::GetOrderHandler::GetOrderHandler(OrderHandler& parent): _parent{parent} {}
 
 seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::GetOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
-        rep->write_body("json", seastar::json::stream_object("TEST"));
+        std::string order_id = req->param[ORDER_ID_KEY];
+        auto order = _parent._exchange->get_order(std::move(order_id));
+        // rep->write_body("json", seastar::json::stream_object(order));
+        
+        return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
+}
+
+OrderHandler::CancelOrderHandler::CancelOrderHandler(OrderHandler& parent): _parent{parent} {}
+
+seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::CancelOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
+        std::string order_id = req->param[ORDER_ID_KEY];
+        std::string instrument = req->param[INSTRUMENT_KEY];
+        auto order_status = _parent._exchange->cancel_order(instrument, order_id);
+        // rep->write_body("json", seastar::json::stream_object(order_status));
         
         return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
 }
@@ -27,6 +44,14 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::GetOrderHan
 OrderHandler::UpdateOrderHandler::UpdateOrderHandler(OrderHandler& parent): _parent{parent} {}
 
 seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::UpdateOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
+        simdjson::ondemand::parser parser;
+        std::string instrument = req->param[INSTRUMENT_KEY];
+        simdjson::padded_string json(req->content.c_str(),req->content.size()); 
+        simdjson::ondemand::document doc = parser.iterate(json);
+        auto order = _parent._order_mapper.map_json_to_order(doc);
+        order->set_id(_parent._uuid_generator.generate());
+        auto order_status = _parent._exchange->modify_order(instrument, std::move(order));
+        
         rep->write_body("json", seastar::json::stream_object("TEST"));
         
         return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
