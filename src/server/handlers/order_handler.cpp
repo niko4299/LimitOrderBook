@@ -14,8 +14,8 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::NewOrderHan
         auto order = _parent._order_mapper.map_json_to_order(doc);
         order->set_id(_parent._uuid_generator.generate());
         auto order_status = _parent._exchange->add_order(instrument, std::move(order));
-
-        // rep->write_body("json", seastar::json::stream_object(x));
+        
+        rep->write_body("json", seastar::json::stream_object(SeastarOrderInfoJson(order->get_id(), order_status)));
         
         return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
 }
@@ -25,9 +25,18 @@ OrderHandler::GetOrderHandler::GetOrderHandler(OrderHandler& parent): _parent{pa
 seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::GetOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
         std::string order_id = req->param[ORDER_ID_KEY];
         auto order = _parent._exchange->get_order(std::move(order_id));
-        // rep->write_body("json", seastar::json::stream_object(order));
+        if(!order.has_value()){
+                rep->set_status(seastar::http::reply::status_type::not_found);
+                return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
+        }
+
+        std::ostringstream oss;
+
+        rep->set_status(seastar::http::reply::status_type::ok);
+        rep->write_body("json", seastar::json::stream_object(SeastarOrderJson(*order)));
         
         return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
+
 }
 
 OrderHandler::CancelOrderHandler::CancelOrderHandler(OrderHandler& parent): _parent{parent} {}
@@ -36,8 +45,15 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::CancelOrder
         std::string order_id = req->param[ORDER_ID_KEY];
         std::string instrument = req->param[INSTRUMENT_KEY];
         auto order_status = _parent._exchange->cancel_order(instrument, order_id);
-        // rep->write_body("json", seastar::json::stream_object(order_status));
-        
+
+        if(order_status == OrderStatus::NOT_FOUND){
+                rep->set_status(seastar::http::reply::status_type::not_found);
+        }else if(order_status == OrderStatus::CANCELLED) {
+                rep->set_status(seastar::http::reply::status_type::ok);
+        }else if(order_status == OrderStatus::REJECTED){
+                rep->set_status(seastar::http::reply::status_type::not_acceptable);
+        }
+
         return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
 }
 
@@ -52,7 +68,7 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::UpdateOrder
         order->set_id(_parent._uuid_generator.generate());
         auto order_status = _parent._exchange->modify_order(instrument, std::move(order));
         
-        rep->write_body("json", seastar::json::stream_object("TEST"));
+        rep->write_body("json", seastar::json::stream_object(SeastarOrderInfoJson(order->get_id(), order_status)));
         
         return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
 }

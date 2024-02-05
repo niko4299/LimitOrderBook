@@ -41,6 +41,16 @@ class Order final {
 
         float get_stop_price();
 
+        std::time_t get_timestamp() const;
+
+        float get_initial_qty() const;
+
+        std::uint8_t get_type_uint8();
+
+        std::uint8_t get_side_uint8();
+
+        std::uint64_t get_params_uint64();
+
         void set_price(float price);
 
         bool is_buy();

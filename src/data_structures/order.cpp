@@ -135,6 +135,27 @@ std::string& Order::get_instrument(){
     return _instrument;
 }
 
+std::time_t Order::get_timestamp() const {
+    return _timestamp;
+}
+
+float Order::get_initial_qty() const {
+    return _qty;
+}
+
+std::uint8_t Order::get_type_uint8(){
+    return static_cast<std::uint64_t>(_type);
+}
+
+std::uint8_t Order::get_side_uint8(){
+    return static_cast<std::uint64_t>(_side);
+}
+
+std::uint64_t Order::get_params_uint64(){
+    return static_cast<std::uint64_t>(_params);
+}
+
+
 bool Order::has_param(OrderParams param) const {
     return static_cast<std::uint64_t>(_params) & static_cast<std::uint64_t>(param);
 }

@@ -7,6 +7,7 @@
 #include "../../exchange/exchange.hpp"
 #include "../../utils/uuid_generator.hpp"
 #include "../../mappers/orderjson_order_mapper.hpp"
+#include "../response/order_response.hpp"
 
 static inline const seastar::sstring ORDER_ID_KEY = seastar::sstring ("instrument");
 static inline const seastar::sstring INSTRUMENT_KEY = seastar::sstring ("order_id");
