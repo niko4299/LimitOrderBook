@@ -1,12 +1,12 @@
 #include "order_handler.hpp"
 
-OrderHandler::OrderHandler(std::shared_ptr<Exchange>& exchange): _new_order_handler(*this), _update_order_handler(*this), _get_order_handler(*this), _cancel_order_handler(*this), _exchange{exchange}, _uuid_generator{}, _order_mapper{} {} 
+OrderHandler::OrderHandler(std::shared_ptr<Exchange>& exchange): _create_order_handler(*this), _update_order_handler(*this), _get_order_handler(*this), _cancel_order_handler(*this), _exchange{exchange}, _uuid_generator{}, _order_mapper{} {} 
 
 
-OrderHandler::NewOrderHandler::NewOrderHandler(OrderHandler& parent): _parent{parent} {}
+OrderHandler::CreateOrderHandler::CreateOrderHandler(OrderHandler& parent): _parent{parent} {}
 
 
-seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::NewOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
+seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::CreateOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
         simdjson::ondemand::parser parser;
         std::string instrument = req->param[INSTRUMENT_KEY];
         simdjson::padded_string json(req->content.c_str(),req->content.size()); 

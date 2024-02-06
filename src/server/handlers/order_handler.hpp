@@ -9,13 +9,13 @@
 #include "../../mappers/orderjson_order_mapper.hpp"
 #include "../response/order_response.hpp"
 
-static inline const seastar::sstring ORDER_ID_KEY = seastar::sstring ("instrument");
-static inline const seastar::sstring INSTRUMENT_KEY = seastar::sstring ("order_id");
+static inline const seastar::sstring INSTRUMENT_KEY = seastar::sstring("instrument");
+static inline const seastar::sstring ORDER_ID_KEY = seastar::sstring("order_id");
 
 class OrderHandler {
-    class NewOrderHandler : public seastar::httpd::handler_base{
+    class CreateOrderHandler : public seastar::httpd::handler_base{
       public:
-          explicit NewOrderHandler(OrderHandler& parent);
+          explicit CreateOrderHandler(OrderHandler& parent);
       private:
         seastar::future<std::unique_ptr<seastar::http::reply>> handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) override;
 
@@ -59,7 +59,7 @@ class OrderHandler {
 
     // UpdateOrderHandler& get_update_order_handler();
 
-    NewOrderHandler _new_order_handler;
+    CreateOrderHandler _create_order_handler;
     UpdateOrderHandler _update_order_handler;
     GetOrderHandler _get_order_handler;
     CancelOrderHandler _cancel_order_handler;

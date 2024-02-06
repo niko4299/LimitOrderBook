@@ -21,8 +21,6 @@ class SeastarServer {
     public:
         SeastarServer(std::string name, std::string address, std::uint16_t port, std::shared_ptr<Exchange>& exchange);
 
-        void set_routes();
-
         void start();
 
         void stop();
@@ -31,7 +29,13 @@ class SeastarServer {
 
         void set_routes(seastar::httpd::routes& routes);
 
-        seastar::httpd::match_rule* create_order_routes();
+        seastar::httpd::match_rule* create_order_route();
+        
+        seastar::httpd::match_rule* update_order_route();
+
+        seastar::httpd::match_rule* get_order_route();
+
+        seastar::httpd::match_rule* cancel_order_route();
 
         std::string _address;
         std::uint16_t _port;
