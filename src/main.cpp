@@ -6,6 +6,7 @@
 
 #include "server/server.hpp"
 #include "utils/seastar_signal_catcher.hpp"
+#include "utils/file_utils.hpp"
 
 DEFINE_string(server_name, "UnlimitedExchange", "server name.");
 DEFINE_string(server_address, "0.0.0.0", "ip address on which server will listen.");
@@ -14,7 +15,7 @@ DEFINE_string(trade_repository_address, "0.0.0.0", "ip address of scylla databas
 DEFINE_uint32(trade_repository_batch_size, 1, "batch size for inserting into trade repository (currently not supported so value should be set to 1).");
 DEFINE_string(rocksdb_dir, "./order_rocksdb", "order rocksdb directory.");
 DEFINE_uint32(ringbuffer_size, 1024, "ringbuffer size (currently same for all).");
-DEFINE_string(instrument_init_file, "./init/instrument.txt", "initial insturment info.");
+DEFINE_string(instrument_init_file, "./init/instruments.txt", "initial insturment info.");
 
 
 int main(int argc, char** argv) {
@@ -44,7 +45,7 @@ int main(int argc, char** argv) {
         StopSignal stop_signal;
         auto _order_repository = std::make_shared<OrderRepository>(std::move(rocks_db_dir), ring_buffer_size);
         auto _trade_repository = std::make_shared<TradeRepository>(std::move(trade_repository_address), trade_repository_batch_size, ring_buffer_size);
-        auto instruments_info = std::vector<std::pair<std::string, float>>{{"AAPL", 1000.0}, {"GOOGL", 1000.0}};
+        auto instruments_info = read_instrument_init_data_from_file(instrument_init_file);
         auto exchange = std::make_shared<Exchange>(instruments_info, ring_buffer_size, _order_repository, _trade_repository);
 
         SeastarServer server{server_name, address, port, exchange};
