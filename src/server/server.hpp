@@ -21,9 +21,11 @@ class SeastarServer {
     public:
         SeastarServer(std::string name, std::string address, std::uint16_t port, std::shared_ptr<Exchange>& exchange);
 
+        ~SeastarServer() = default;
+
         void start();
 
-        void stop();
+        seastar::future<> stop();
 
     private:
 

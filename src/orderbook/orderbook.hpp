@@ -21,6 +21,8 @@ class OrderBook final{
 
         OrderBook(std::string instrument, float market_price, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository);
 
+        ~OrderBook() = default;
+        
         Spread get_spread();
 
         std::vector<std::shared_ptr<Order>> get_bids();

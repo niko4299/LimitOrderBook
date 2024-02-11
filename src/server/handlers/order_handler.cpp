@@ -13,6 +13,7 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::CreateOrder
         simdjson::ondemand::document doc = parser.iterate(json);
         auto order = _parent._order_mapper.map_json_to_order(doc);
         order->set_id(_parent._uuid_generator.generate());
+        std::cout<<"TU SAM";
         auto order_status = _parent._exchange->add_order(instrument, std::move(order));
         
         rep->write_body("json", seastar::json::stream_object(SeastarOrderInfoJson(order->get_id(), order_status)));
@@ -29,8 +30,6 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::GetOrderHan
                 rep->set_status(seastar::http::reply::status_type::not_found);
                 return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
         }
-
-        std::ostringstream oss;
 
         rep->set_status(seastar::http::reply::status_type::ok);
         rep->write_body("json", seastar::json::stream_object(SeastarOrderJson(*order)));

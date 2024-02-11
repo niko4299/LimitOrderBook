@@ -40,7 +40,6 @@ class TradeRepository{
         CassCluster* _cluster;
         CassSession* _session;
         uint32_t _batch_size;
-        bool _done{false};
         std::unique_ptr<RingBuffer<Trade>> _ring_buffer;
         const CassPrepared* _prepared_insert_query;
         const char* _query_all = "SELECT * FROM orderbook.trades";

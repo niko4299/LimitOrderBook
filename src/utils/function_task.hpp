@@ -25,6 +25,8 @@ class FunctionTask {
             _ringbuffer->push(std::forward<F>(f));
         }
 
+        ~FunctionTask() = default;
+
     private:
         std::unique_ptr<RingBuffer<std::function<void()>>> _ringbuffer;
         std::jthread _thread;

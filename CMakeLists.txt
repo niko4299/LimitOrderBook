@@ -46,7 +46,7 @@ ExternalProject_Add(
 )
 
 set(SCYLLA_DRIVER_INCLUDE_DIR ${SCYLLA_DRIVER_ROOT}/src/scylladriver/include)
-set(SCYLLA_DRIVER_LIBRARIES ${SCYLLA_DRIVER_ROOT}/src/scylladriver-build/libscylla-cpp-driver.so)
+
 
 set(UUID_ROOT ${PROJECT_BINARY_DIR}/uuid)
 ExternalProject_Add(
