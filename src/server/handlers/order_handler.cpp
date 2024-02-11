@@ -1,10 +1,6 @@
 #include "order_handler.hpp"
 
-OrderHandler::OrderHandler(std::shared_ptr<Exchange>& exchange): _create_order_handler(*this), _update_order_handler(*this), _get_order_handler(*this), _cancel_order_handler(*this), _exchange{exchange}, _uuid_generator{}, _order_mapper{} {} 
-
-
 OrderHandler::CreateOrderHandler::CreateOrderHandler(OrderHandler& parent): _parent{parent} {}
-
 
 seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::CreateOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
         simdjson::ondemand::parser parser;
@@ -13,7 +9,6 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::CreateOrder
         simdjson::ondemand::document doc = parser.iterate(json);
         auto order = _parent._order_mapper.map_json_to_order(doc);
         order->set_id(_parent._uuid_generator.generate());
-        std::cout<<"TU SAM";
         auto order_status = _parent._exchange->add_order(instrument, std::move(order));
         
         rep->write_body("json", seastar::json::stream_object(SeastarOrderInfoJson(order->get_id(), order_status)));
@@ -71,6 +66,8 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::UpdateOrder
         
         return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
 }
+
+OrderHandler::OrderHandler(std::shared_ptr<Exchange>& exchange): _create_order_handler(*this), _update_order_handler(*this), _get_order_handler(*this), _cancel_order_handler(*this), _exchange{exchange}, _uuid_generator{}, _order_mapper{} {} 
 
 // NewOrderHandler& OrderHandler::get_new_order_handler(){
 //         return _new_order_handler;    
