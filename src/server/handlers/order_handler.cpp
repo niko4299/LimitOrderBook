@@ -3,13 +3,15 @@
 OrderHandler::CreateOrderHandler::CreateOrderHandler(OrderHandler& parent): _parent{parent} {}
 
 seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::CreateOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
-        simdjson::ondemand::parser parser;
-        std::string instrument = req->param[INSTRUMENT_KEY];
+        if (!_parent.validate_instrument_parameter(INSTRUMENT_KEY, req, rep, "invalid instrument parameter")){
+                return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
+        }
+
         simdjson::padded_string json(req->content.c_str(),req->content.size()); 
-        simdjson::ondemand::document doc = parser.iterate(json);
+        simdjson::ondemand::document doc = _parent._parser.iterate(json);
         auto order = _parent._order_mapper.map_json_to_order(doc);
         order->set_id(_parent._uuid_generator.generate());
-        auto order_status = _parent._exchange->add_order(instrument, std::move(order));
+        auto order_status = _parent._exchange->add_order(std::move(req->param[INSTRUMENT_KEY]), std::move(order));
         
         rep->write_body("json", seastar::json::stream_object(SeastarOrderInfoJson(order->get_id(), order_status)));
         
@@ -19,8 +21,11 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::CreateOrder
 OrderHandler::GetOrderHandler::GetOrderHandler(OrderHandler& parent): _parent{parent} {}
 
 seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::GetOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
-        std::string order_id = req->param[ORDER_ID_KEY];
-        auto order = _parent._exchange->get_order(std::move(order_id));
+        if (!_parent.validate_parameter(ORDER_ID_KEY, req, rep, "invalid order parameter")){
+                return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
+        }
+
+        auto order = _parent._exchange->get_order(std::move(req->param[ORDER_ID_KEY]));
         if(!order.has_value()){
                 rep->set_status(seastar::http::reply::status_type::not_found);
                 return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
@@ -36,10 +41,15 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::GetOrderHan
 OrderHandler::CancelOrderHandler::CancelOrderHandler(OrderHandler& parent): _parent{parent} {}
 
 seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::CancelOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
-        std::string order_id = req->param[ORDER_ID_KEY];
-        std::string instrument = req->param[INSTRUMENT_KEY];
-        auto order_status = _parent._exchange->cancel_order(instrument, order_id);
+        if (!_parent.validate_parameter(ORDER_ID_KEY, req, rep, "invalid order parameter")){
+                return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
+        }
+        
+        if (!_parent.validate_instrument_parameter(INSTRUMENT_KEY, req, rep, "invalid instrument parameter")){
+                return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
+        }
 
+        auto order_status = _parent._exchange->cancel_order(std::move(req->param[INSTRUMENT_KEY]), std::move(req->param[ORDER_ID_KEY]));
         if(order_status == OrderStatus::NOT_FOUND){
                 rep->set_status(seastar::http::reply::status_type::not_found);
         }else if(order_status == OrderStatus::CANCELLED) {
@@ -54,14 +64,16 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::CancelOrder
 OrderHandler::UpdateOrderHandler::UpdateOrderHandler(OrderHandler& parent): _parent{parent} {}
 
 seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::UpdateOrderHandler::handle(const seastar::sstring& path, std::unique_ptr<seastar::http::request> req, std::unique_ptr<seastar::http::reply> rep) {
-        simdjson::ondemand::parser parser;
-        std::string instrument = req->param[INSTRUMENT_KEY];
+        if (!_parent.validate_instrument_parameter(INSTRUMENT_KEY, req, rep, "invalid instrument parameter")){
+                return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
+        }
+
         simdjson::padded_string json(req->content.c_str(),req->content.size()); 
-        simdjson::ondemand::document doc = parser.iterate(json);
+        simdjson::ondemand::document doc = _parent._parser.iterate(json);
         auto order = _parent._order_mapper.map_json_to_order(doc);
         order->set_id(_parent._uuid_generator.generate());
-        auto order_status = _parent._exchange->modify_order(instrument, std::move(order));
         
+        auto order_status = _parent._exchange->modify_order(std::move(req->param[INSTRUMENT_KEY]), std::move(order));
         rep->write_body("json", seastar::json::stream_object(SeastarOrderInfoJson(order->get_id(), order_status)));
         
         return seastar::make_ready_future<std::unique_ptr<seastar::http::reply>>(std::move(rep));
@@ -69,14 +81,28 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::UpdateOrder
 
 OrderHandler::OrderHandler(std::shared_ptr<Exchange>& exchange): _create_order_handler(*this), _update_order_handler(*this), _get_order_handler(*this), _cancel_order_handler(*this), _exchange{exchange}, _uuid_generator{}, _order_mapper{} {} 
 
-// NewOrderHandler& OrderHandler::get_new_order_handler(){
-//         return _new_order_handler;    
-// }
+bool OrderHandler::validate_parameter(const seastar::sstring &parameter, std::unique_ptr<seastar::http::request> &req, std::unique_ptr<seastar::http::reply> &rep, std::string message){
+        bool valid_type = req->param.exists(parameter);
+        if (!valid_type) {
+            rep->write_body("json", seastar::json::stream_object(std::move(message)));
+            rep->set_status(seastar::http::reply::status_type::bad_request);
+        }
 
-// GetOrderHandler& OrderHandler::get_get_order_handler(){
-//         return _get_order_handler;
-// }
+        return valid_type;
+}
 
-// UpdateOrderHandler& OrderHandler::get_update_order_handler(){
-//         return _update_order_handler;
-// }
+bool OrderHandler::validate_instrument_parameter(const seastar::sstring &parameter, std::unique_ptr<seastar::http::request> &req, std::unique_ptr<seastar::http::reply> &rep, std::string message){
+        if (!validate_parameter(INSTRUMENT_KEY, req, rep, "invalid instrument parameter")){
+                return false;
+        }
+
+        std::string instrument = req->param[INSTRUMENT_KEY];
+        if (!_exchange->instrument_exists(instrument)){
+                rep->set_status(seastar::http::reply::status_type::not_found);
+                rep->write_body("json", seastar::json::stream_object(fmt::format("instrument {} doesn't exist", instrument)));
+
+                return false;
+        }
+
+        return true;
+}

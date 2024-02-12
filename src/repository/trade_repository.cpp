@@ -6,10 +6,9 @@ TradeRepository::TradeRepository(std::string&& hosts, uint32_t batch_size, std::
     _session = cass_session_new();
 
     cass_cluster_set_contact_points(_cluster, hosts.c_str());
-    
-    CassFuture* connect_future = cass_session_connect(_session, _cluster);
+    auto connect_future = std::unique_ptr<CassFuture, decltype(&cass_future_free)>(cass_session_connect(_session, _cluster), &cass_future_free);
 
-    if (cass_future_error_code(connect_future) != CASS_OK){
+    if (cass_future_error_code(connect_future.get()) != CASS_OK){
       throw std::runtime_error("Failed connecting to scylla db.");
     }
 
@@ -20,12 +19,8 @@ TradeRepository::TradeRepository(std::string&& hosts, uint32_t batch_size, std::
     _prepared_insert_query = cass_future_get_prepared(prep_future);
     prep_future = cass_session_prepare(_session, select_by_primary_key_query);
     cass_future_wait(prep_future);
-    const CassPrepared* prepared = cass_future_get_prepared(prep_future);
-    _prepared_select_by_primary_key_query = std::move(prepared);
-
-    cass_prepared_free(prepared);
+    _prepared_select_by_primary_key_query = std::move(cass_future_get_prepared(prep_future));
     cass_future_free(prep_future);
-    cass_future_free(connect_future);
 
     _batch_size = batch_size;
     _ring_buffer = std::make_unique<RingBuffer<Trade>>(ringbuffer_size);
@@ -50,8 +45,8 @@ TradeRepository::~TradeRepository() {
     cass_prepared_free(_prepared_insert_query);
     cass_prepared_free(_prepared_select_by_primary_key_query);
 
-    cass_session_free(_session);
     cass_cluster_free(_cluster);
+    cass_session_free(_session);
 
     _thread.request_stop();
     _thread.join();

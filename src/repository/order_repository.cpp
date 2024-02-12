@@ -47,11 +47,10 @@ OrderRepository::~OrderRepository() {
     auto status = _db->DestroyColumnFamilyHandle(_order_handler);
     if (_default_handler) {
         status = _db->DestroyColumnFamilyHandle(_default_handler);
-        delete _default_handler;
         _default_handler = nullptr;
     }
     _db->Close();
-    delete _order_handler;
+
     _order_handler = nullptr;
 
     delete _db;
@@ -81,7 +80,7 @@ bool OrderRepository::save(std::shared_ptr<Order>& order) {
     return status.ok();
 }
 
-std::optional<std::shared_ptr<Order>> OrderRepository::get(std::string& order_id) {
+std::optional<std::shared_ptr<Order>> OrderRepository::get(std::string_view order_id) {
     std::string order_serialized;
     auto status = _db->Get(rocksdb::ReadOptions(), _order_handler , order_id, &order_serialized);
     if (status.ok()) {

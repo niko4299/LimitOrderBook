@@ -13,6 +13,9 @@ static inline const seastar::sstring INSTRUMENT_KEY = seastar::sstring("instrume
 static inline const seastar::sstring ORDER_ID_KEY = seastar::sstring("order_id");
 
 class OrderHandler {
+  public: 
+    explicit OrderHandler(std::shared_ptr<Exchange>& exchange);
+
   private:
     class CreateOrderHandler : public seastar::httpd::handler_base{
       public:
@@ -50,15 +53,11 @@ class OrderHandler {
         OrderHandler& _parent;
     };
 
+    bool validate_parameter(const seastar::sstring &parameter, std::unique_ptr<seastar::http::request> &req, std::unique_ptr<seastar::http::reply> &rep, std::string message);
+
+    bool validate_instrument_parameter(const seastar::sstring &parameter, std::unique_ptr<seastar::http::request> &req, std::unique_ptr<seastar::http::reply> &rep, std::string message);
 
   public:
-    explicit OrderHandler(std::shared_ptr<Exchange>& exchange);
-
-    // NewOrderHandler& get_new_order_handler();
-
-    // GetOrderHandler& get_get_order_handler();
-
-    // UpdateOrderHandler& get_update_order_handler();
 
     CreateOrderHandler _create_order_handler;
     UpdateOrderHandler _update_order_handler;
@@ -69,4 +68,5 @@ class OrderHandler {
     std::shared_ptr<Exchange>& _exchange;
     UUIDGenerator _uuid_generator;
     OrderJsonOrderMapper _order_mapper;
+    simdjson::ondemand::parser _parser;
 };

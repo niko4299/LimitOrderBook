@@ -1,6 +1,6 @@
 #include "orderbook.hpp"
 
-OrderBook::OrderBook(std::string instrument, float market_price, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository)
+OrderBook::OrderBook(std::string_view instrument, float market_price, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository)
     : _instrument{instrument},
      _market_price{market_price},
      _order_repository{order_repository},
@@ -225,7 +225,7 @@ Spread OrderBook::get_spread() {
     return {best_bid_price, best_ask_price, best_ask_price - best_bid_price};
 }
 
-OrderStatus OrderBook::cancel_order(std::string&& order_id) {
+OrderStatus OrderBook::cancel_order(std::string_view order_id) {
     auto orderbook_entry = _orders.find(order_id);
     if (orderbook_entry != _orders.end()) {
         orderbook_entry->second->cancel();
@@ -341,7 +341,7 @@ void OrderBook::add_ask_stop_orders_above(float price) {
     }
 }
 
-std::string& OrderBook::get_instrument() {
+std::string_view OrderBook::get_instrument() {
     return _instrument;
 }
 

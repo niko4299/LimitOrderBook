@@ -31,7 +31,7 @@ class OrderRepository{
 
         bool save(std::shared_ptr<Order>& order);
 
-        std::optional<std::shared_ptr<Order>> get(std::string& order_id);
+        std::optional<std::shared_ptr<Order>> get(std::string_view order_id);
 
         void enqueue(std::shared_ptr<Order>& order) const;
 
@@ -45,6 +45,6 @@ class OrderRepository{
         rocksdb::Options _options;
         rocksdb::ColumnFamilyHandle* _order_handler = nullptr;
         rocksdb::ColumnFamilyHandle* _default_handler = nullptr;
-       std::unique_ptr<RingBuffer<std::shared_ptr<Order>>> _ring_buffer;
+        std::unique_ptr<RingBuffer<std::shared_ptr<Order>>> _ring_buffer;
         std::jthread _thread;
 };
