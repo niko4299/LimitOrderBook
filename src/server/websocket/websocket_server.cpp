@@ -1,16 +1,12 @@
 #include "websocket_server.hpp"
 
-WebSocketSession::WebSocketSession(tcp::socket&& socket, int buy_treshold, int sell_treshold)
-    : ws_(std::move(socket)) {
-    // exchange_ = std::make_unique<Exchange>(buy_treshold,sell_treshold);
-}
+WebSocketSession::WebSocketSession(tcp::socket&& socket, std::unique_ptr<Exchange>& exchange)
+    : _ws(std::move(socket)), _exchange(std::move(exchange)) {}
 
-// Print out error.
 void WebSocketSession::on_fail(beast::error_code ec, char const* error_message) {
     std::cerr << error_message << ": " << ec.message() << "\n";
 }
 
-// Run WebSocketSession.
 void WebSocketSession::run() {
     net::dispatch(ws_.get_executor(), beast::bind_front_handler(&WebSocketSession::on_run, shared_from_this()));
 }
@@ -18,11 +14,10 @@ void WebSocketSession::run() {
 void WebSocketSession::on_run() {
     ws_.set_option(websocket::stream_base::timeout::suggested(beast::role_type::server));
 
-    // Set a decorator to change the Server of the handshake
     ws_.set_option(websocket::stream_base::decorator([](websocket::response_type& res) {
         res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
     }));
-    // Accept the websocket handshake
+
     ws_.async_accept(beast::bind_front_handler(&WebSocketSession::on_accept, shared_from_this()));
 }
 
@@ -36,32 +31,31 @@ void WebSocketSession::do_read() {
     ws_.async_read(buffer_, beast::bind_front_handler(&WebSocketSession::on_read, shared_from_this()));
 }
 
-// If closed destroy everything else check if message has too much bytes if yes return empty string else process message.
 void WebSocketSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
     boost::ignore_unused(bytes_transferred);
 
-    // This indicates that the session was closed
-    if (ec == websocket::error::closed)
+    if (ec == websocket::error::closed){
         return;
-
-    if (ec)
-        return on_fail(ec, "read");
-
-    if (bytes_transferred > 54) {
-        ws_.async_write(net::buffer("Wrong message!"), beast::bind_front_handler(&WebSocketSession::on_write, shared_from_this()));
-    } else {
-
-        // auto response = exchange_->process_message(beast::buffers_to_string(buffer_.data()));
-        std::string response = "2";
-        ws_.async_write(net::buffer(response), beast::bind_front_handler(&WebSocketSession::on_write, shared_from_this()));
     }
+
+    if (ec){
+        return on_fail(ec, "read");
+    }
+
+        // ws_.async_write(net::buffer("Wrong message!"), beast::bind_front_handler(&WebSocketSession::on_write, shared_from_this()));
+
+    auto response = _exchange->process_message(beast::buffers_to_string(buffer_.data()));
+    std::string response = "2";
+    ws_.async_write(net::buffer(response), beast::bind_front_handler(&WebSocketSession::on_write, shared_from_this()));
+
 }
 
 void WebSocketSession::on_write(beast::error_code ec, std::size_t bytes_transferred) {
     boost::ignore_unused(bytes_transferred);
 
-    if (ec)
+    if (ec){
         return on_fail(ec, "write");
+    }
 
     buffer_.consume(buffer_.size());
 
@@ -111,10 +105,11 @@ void WebSocketListener::do_accept() {
     acceptor_.async_accept(net::make_strand(ioc_), beast::bind_front_handler(&WebSocketListener::on_accept, shared_from_this()));
 }
 
-// On new connection create WebSocketSession.
 void WebSocketListener::on_accept(beast::error_code ec, tcp::socket socket) {
-    if (ec)
+    if (ec){
         on_fail(ec, "accept");
+    }
+
     std::make_shared<WebSocketSession>(std::move(socket), 10, 10)->run();
     do_accept();
 }

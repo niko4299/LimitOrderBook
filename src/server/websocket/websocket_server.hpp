@@ -1,12 +1,13 @@
+#include<memory>
+#include<string>
+#include<iostream>
+
 #include<boost/beast/core.hpp>
 #include<boost/beast/websocket.hpp>
 #include<boost/asio/dispatch.hpp>
 #include<boost/asio/strand.hpp>
-#include<memory>
-#include<string>
-#include<iostream>
-// #include "../exchange/exchange.hpp"
-// #include "../exchange/message_types.hpp"
+
+#include "../exchange/exchange.hpp"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -18,7 +19,7 @@ namespace ssl = boost::asio::ssl;
 class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>{
 
     public:
-        explicit WebSocketSession(tcp::socket&& socket,int buy_treshold, int sell_treshold);
+        explicit WebSocketSession(tcp::socket&& socket, std::unique_ptr<Exchange>& exchange);
 
         virtual void run();
 
@@ -35,11 +36,9 @@ class WebSocketSession : public std::enable_shared_from_this<WebSocketSession>{
         virtual void on_fail(beast::error_code ec, const char* error_message);
 
     private:
-
-        // trader personal exchange.
-        // std::unique_ptr<Exchange> exchange_;
-        websocket::stream<beast::tcp_stream> ws_;        
-        beast::flat_buffer buffer_;
+        std::unique_ptr<Exchange> _exchange;
+        websocket::stream<beast::tcp_stream> _ws;        
+        beast::flat_buffer _buffer;
 };
 
 class WebSocketListener : public std::enable_shared_from_this<WebSocketListener>{

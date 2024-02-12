@@ -19,8 +19,10 @@ class OrderBook final{
 
     public:
 
-        OrderBook(std::string instrument, float market_price, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository);
+        OrderBook(std::string_view instrument, float market_price, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository);
 
+        ~OrderBook() = default;
+        
         Spread get_spread();
 
         std::vector<std::shared_ptr<Order>> get_bids();
@@ -33,11 +35,11 @@ class OrderBook final{
 
         float get_market_price();
 
-        std::string& get_instrument();
+        std::string_view get_instrument();
 
         OrderStatus add_order(std::shared_ptr<Order>&& order);
 
-        OrderStatus cancel_order(std::string&& order_id);
+        OrderStatus cancel_order(std::string_view order_id);
 
         OrderStatus modify_order(std::shared_ptr<Order>&& order);
 
@@ -77,13 +79,13 @@ class OrderBook final{
                          std::shared_ptr<Order>& order, float cross_price,
                          std::vector<std::shared_ptr<Order>>& changed_orders);
 
-        std::string _instrument;
+        std::string_view _instrument;
         float _market_price;
         RBTree<std::shared_ptr<Limit>> _ask_limits{};
         RBTree<std::shared_ptr<Limit>> _bid_limits{};
         RBTree<std::shared_ptr<Order>> _ask_stop_orders{};
         RBTree<std::shared_ptr<Order>> _bid_stop_orders{};
-        std::unordered_map<std::string, std::shared_ptr<Order>> _orders{};
+        std::unordered_map<std::string_view, std::shared_ptr<Order>> _orders{};
 
         std::shared_ptr<OrderRepository> _order_repository;
         std::shared_ptr<TradeRepository> _trade_repository;

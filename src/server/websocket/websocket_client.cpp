@@ -100,19 +100,20 @@ void WebSocketClient::on_write(beast::error_code ec, std::size_t bytes_transferr
 
     boost::ignore_unused(bytes_transferred);
 
-    if (ec)
+    if (ec){
         return on_fail(ec, "write");
+    }
 
-    // Read a message into our buffer
     ws_.async_read(buffer_, beast::bind_front_handler(&WebSocketClient::on_read, WebSocketClient::shared_from_this()));
 }
 
 void WebSocketClient::on_read(beast::error_code ec, std::size_t bytes_transferred) {
     boost::ignore_unused(bytes_transferred);
 
-    if (ec)
+    if (ec){
         return on_fail(ec, "read");
-
+    }
+    
     auto req = beast::buffers_to_string(buffer_.data());
     // auto request = nlohmann::json::parse(req);
     // if(request.size() == 8){

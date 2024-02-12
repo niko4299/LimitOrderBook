@@ -1,7 +1,7 @@
 #include "order.hpp"
 #include "limit.hpp"
 
-Order::Order(std::string id, std::string&& instrument, std::string&& user_id, float qty, float price, Side side, OrderParams params,
+Order::Order(std::string_view id, std::string_view instrument, std::string_view user_id, float qty, float price, Side side, OrderParams params,
              OrderType type)
     : _id{id}
     , _instrument{instrument}
@@ -14,8 +14,20 @@ Order::Order(std::string id, std::string&& instrument, std::string&& user_id, fl
     , _params{params}
     , _type{type} {}
 
+Order::Order(std::string_view instrument, std::string_view user_id, float qty, float price, Side side, OrderParams params,
+             OrderType type)
+    : _instrument{instrument}
+    , _user_id{user_id}
+    , _timestamp{time(0)}
+    , _qty{qty}
+    , _current_qty{qty}
+    , _price{price}
+    , _side{side}
+    , _params{params}
+    , _type{type} {}
+
 // Used for stop orders
-Order::Order(std::string id, std::string&& instrument, std::string&& user_id, float qty, float price, float stop_price, Side side,
+Order::Order(std::string_view id, std::string_view instrument, std::string_view user_id, float qty, float price, float stop_price, Side side,
              OrderParams params, OrderType type)
     : _id{id}
     , _instrument{instrument}
@@ -28,6 +40,24 @@ Order::Order(std::string id, std::string&& instrument, std::string&& user_id, fl
     , _side{side}
     , _params{params}
     , _type{type} {}
+
+Order::Order(std::string_view instrument, std::string_view user_id, float qty, float price, float stop_price, Side side,
+             OrderParams params, OrderType type)
+    : _instrument{instrument}
+    , _user_id{user_id}
+    , _timestamp{time(0)}
+    , _qty{qty}
+    , _current_qty{qty}
+    , _price{price}
+    , _stop_price{stop_price}
+    , _side{side}
+    , _params{params}
+    , _type{type} {}
+
+
+void Order::set_id(std::string_view id){
+    _id = id;
+}
 
 std::string& Order::get_id() {
     return _id;
@@ -104,6 +134,27 @@ std::string& Order::get_user_id() {
 std::string& Order::get_instrument(){
     return _instrument;
 }
+
+std::time_t Order::get_timestamp() const {
+    return _timestamp;
+}
+
+float Order::get_initial_qty() const {
+    return _qty;
+}
+
+std::uint8_t Order::get_type_uint8(){
+    return static_cast<std::uint64_t>(_type);
+}
+
+std::uint8_t Order::get_side_uint8(){
+    return static_cast<std::uint64_t>(_side);
+}
+
+std::uint64_t Order::get_params_uint64(){
+    return static_cast<std::uint64_t>(_params);
+}
+
 
 bool Order::has_param(OrderParams param) const {
     return static_cast<std::uint64_t>(_params) & static_cast<std::uint64_t>(param);

@@ -8,10 +8,10 @@ Exchange::Exchange(std::vector<std::pair<std::string,float>>& instruments_info, 
     _thread_pool = std::make_unique<ThreadPool>(instruments_info.size(), ringbuffer_size_per_instrument);
     _order_repo = order_repository;
     _trade_repo = trade_repository;
+
 };
 
-OrderStatus Exchange::add_order(std::shared_ptr<Order>&& order){
-    auto instrument = order->get_instrument();
+OrderStatus Exchange::add_order(std::string_view instrument, std::shared_ptr<Order>&& order){
     auto& orderbook = _instruments[instrument];
     auto thread_id = _instrument_idx[instrument];
 
@@ -22,8 +22,7 @@ OrderStatus Exchange::add_order(std::shared_ptr<Order>&& order){
     return future.get();
 };
 
-OrderStatus Exchange::modify_order(std::shared_ptr<Order>&& order){
-    auto instrument = order->get_instrument();
+OrderStatus Exchange::modify_order(std::string_view instrument, std::shared_ptr<Order>&& order){
     auto& orderbook = _instruments[instrument];
     auto thread_id = _instrument_idx[instrument];
 
@@ -34,7 +33,7 @@ OrderStatus Exchange::modify_order(std::shared_ptr<Order>&& order){
     return future.get();
 };
 
-OrderStatus Exchange::cancel_order(std::string& instrument, std::string& order_id){
+OrderStatus Exchange::cancel_order(std::string_view instrument, std::string_view order_id){
     auto& orderbook = _instruments[instrument];
     auto thread_id = _instrument_idx[instrument];
 
@@ -45,14 +44,26 @@ OrderStatus Exchange::cancel_order(std::string& instrument, std::string& order_i
     return future.get();
 };
 
-bool Exchange::add_instrument(std::string& instrument,std::size_t ringbuffer_size_per_instrument, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository){
-        _instrument_idx[instrument] = _instruments.size();
-        _instruments.emplace(instrument, std::make_shared<OrderBook>(instrument, 1000, order_repository, trade_repository));
-        
-        return true;
+bool Exchange::add_instrument(std::string_view instrument, float starting_price){
+    if (instrument_exists(instrument)){
+        return false;
+    }
+
+    _instrument_idx[instrument] = _instruments.size();
+    _instruments.emplace(instrument, std::make_shared<OrderBook>(instrument, starting_price, _order_repo, _trade_repo));
+    
+    return true;
 };
 
-std::optional<std::shared_ptr<Order>> Exchange::get_order(std::string&& order_id) {
+bool Exchange::instrument_exists(std::string_view instrument){
+    if(_instruments.find(instrument) != _instruments.end()){
+        return true;
+    }
+
+    return false;
+}
+
+std::optional<std::shared_ptr<Order>> Exchange::get_order(std::string_view order_id) {
     return std::move(_order_repo->get(order_id));
 }
 

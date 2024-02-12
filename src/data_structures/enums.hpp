@@ -1,6 +1,6 @@
 #pragma once
 
-enum class Side { UNKOWN, BUY, SELL };
+enum class Side: std::uint8_t { UNKOWN, BUY, SELL };
 
 enum class OrderParams : std::uint64_t {
     STOP = 1,        // stop limit order
@@ -12,6 +12,6 @@ enum class OrderParams : std::uint64_t {
     GTD = 1U << 5U,  // good-till-date
 };
 
-enum class OrderType { MARKET, LIMIT };
+enum class OrderType: std::uint8_t  { MARKET, LIMIT };
 
-enum class OrderStatus{ACCEPTED, MATCHED, NOT_MATCHED, REJECTED, CANCELLED, MODIFIED, NOT_FOUND};
+enum class OrderStatus : std::uint8_t { ACCEPTED, MATCHED, NOT_MATCHED, REJECTED, CANCELLED, MODIFIED, NOT_FOUND};

@@ -27,9 +27,9 @@ class ExchangeTest : public ::testing::Test {
 TEST_F(ExchangeTest, AddOrder) {
     auto instruments_info = std::vector<std::pair<std::string, float>>{{"AAPL", 1000.0}, {"GOOGL", 1000.0}};
     auto exchange = std::make_shared<Exchange>(instruments_info, 100, _order_repository, _trade_repository);
-
-    auto order = std::make_shared<Order>("order_id","AAPL","test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
-    auto status = exchange->add_order(std::move(order));
+    std::string instrument = "AAPL";
+    auto order = std::make_shared<Order>("order_id", instrument, "test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+    auto status = exchange->add_order(instrument, std::move(order));
 
     ASSERT_EQ(status, OrderStatus::ACCEPTED);
 
@@ -41,13 +41,14 @@ TEST_F(ExchangeTest, AddOrder) {
 TEST_F(ExchangeTest, CancelOrder) {
     auto instruments_info = std::vector<std::pair<std::string, float>>{{"AAPL", 1000.0}, {"GOOGL", 1000.0}};
     auto exchange = std::make_shared<Exchange>(instruments_info, 100, _order_repository, _trade_repository);
+    std::string instrument = "AAPL";
 
-    auto order = std::make_shared<Order>("order_id","AAPL","test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
-    exchange->add_order(std::move(order));
+    auto order = std::make_shared<Order>("order_id", instrument,"test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+    exchange->add_order(instrument, std::move(order));
 
     exchange->cancel_order(order->get_instrument(),order->get_id());
    
-       std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     auto maybe_order = exchange->get_order("order_id");
 
     ASSERT_TRUE(maybe_order.has_value());
@@ -57,15 +58,16 @@ TEST_F(ExchangeTest, CancelOrder) {
 TEST_F(ExchangeTest, ModifyOrder) {
     auto instruments_info = std::vector<std::pair<std::string, float>>{{"AAPL", 1000.0}, {"GOOGL", 1000.0}};
     auto exchange = std::make_shared<Exchange>(instruments_info, 100, _order_repository, _trade_repository);
+    std::string instrument = "AAPL";
 
-    auto order = std::make_shared<Order>("order_id","AAPL","test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
-    exchange->add_order(std::move(order));
+    auto order = std::make_shared<Order>("order_id", instrument,"test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+    exchange->add_order(instrument, std::move(order));
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     auto new_qty = 103.5;
-    auto modify_order = std::make_shared<Order>("order_id","AAPL","test_user", new_qty,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+    auto modify_order = std::make_shared<Order>("order_id", instrument,"test_user", new_qty,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
 
-    exchange->modify_order(std::move(modify_order));
+    exchange->modify_order(instrument, std::move(modify_order));
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 

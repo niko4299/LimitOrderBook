@@ -41,8 +41,15 @@ void TradeRepository::process_messages(std::stop_token s){
 }
 
 TradeRepository::~TradeRepository() {
-  cass_cluster_free(_cluster);
-  cass_session_free(_session);
+
+    cass_prepared_free(_prepared_insert_query);
+    cass_prepared_free(_prepared_select_by_primary_key_query);
+
+    cass_cluster_free(_cluster);
+    cass_session_free(_session);
+
+    _thread.request_stop();
+    _thread.join();
 }
 
 bool TradeRepository::save(Trade trade) {
@@ -168,4 +175,3 @@ bool TradeRepository::run_query(std::string&& query){
     cass_future_free(result_future);
     return ok;
 }
-

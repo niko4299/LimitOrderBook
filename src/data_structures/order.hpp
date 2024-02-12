@@ -21,10 +21,11 @@ class Order final {
     public:
         Order() = default;
 
-        explicit Order(std::string id, std::string&& instrument, std::string&& user_id, float qty, float price, Side side, OrderParams params, OrderType type);
+        Order(std::string_view id, std::string_view instrument, std::string_view user_id, float qty, float price, Side side, OrderParams params, OrderType type);
+        Order(std::string_view instrument, std::string_view user_id, float qty, float price, Side side, OrderParams params, OrderType type);
+        Order(std::string_view id, std::string_view instrument, std::string_view user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type);
+        Order(std::string_view instrument, std::string_view user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type);
 
-        Order(std::string id, std::string&& instrument, std::string&& user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type);
-        
         ~Order() = default;
         
         Order(Order const &) = delete;
@@ -32,11 +33,23 @@ class Order final {
         Order &operator=(Order const &) = delete;
         Order &operator=(Order &&) = delete;
 
+        void set_id(std::string_view id);
+
         std::string& get_id();
 
         float get_price();
 
         float get_stop_price();
+
+        std::time_t get_timestamp() const;
+
+        float get_initial_qty() const;
+
+        std::uint8_t get_type_uint8();
+
+        std::uint8_t get_side_uint8();
+
+        std::uint64_t get_params_uint64();
 
         void set_price(float price);
 
