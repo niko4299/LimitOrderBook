@@ -13,6 +13,7 @@ static inline const seastar::sstring INSTRUMENT_KEY = seastar::sstring("instrume
 static inline const seastar::sstring ORDER_ID_KEY = seastar::sstring("order_id");
 
 class OrderHandler {
+  private:
     class CreateOrderHandler : public seastar::httpd::handler_base{
       public:
           explicit CreateOrderHandler(OrderHandler& parent);
