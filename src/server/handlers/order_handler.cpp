@@ -71,7 +71,6 @@ seastar::future<std::unique_ptr<seastar::http::reply>> OrderHandler::UpdateOrder
         simdjson::padded_string json(req->content.c_str(),req->content.size()); 
         simdjson::ondemand::document doc = _parent._parser.iterate(json);
         auto order = _parent._order_mapper.map_json_to_order(doc);
-        order->set_id(_parent._uuid_generator.generate());
         
         auto order_status = _parent._exchange->modify_order(std::move(req->param[INSTRUMENT_KEY]), std::move(order));
         rep->write_body("json", seastar::json::stream_object(SeastarOrderInfoJson(order->get_id(), order_status)));

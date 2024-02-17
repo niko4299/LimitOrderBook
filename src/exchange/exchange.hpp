@@ -29,9 +29,10 @@ class Exchange final {
 
         std::optional<std::shared_ptr<Order>> get_order(std::string_view order_id);
 
+        Snapshot get_orderbook_snapshot(std::string_view instrument);
+
     private:
         std::future<OrderStatus> enqueue_task(std::uint32_t& thread_id, std::function<OrderStatus(void)>&& task_function);
-
 
         std::unordered_map<std::string_view, std::uint32_t> _instrument_idx{};
         std::unordered_map<std::string_view, std::shared_ptr<OrderBook>> _instruments;

@@ -341,6 +341,10 @@ void OrderBook::add_ask_stop_orders_above(float price) {
     }
 }
 
+Snapshot OrderBook::get_snapshot(){
+    return Snapshot{get_asks(), get_bids(), get_spread()};
+}
+
 std::string_view OrderBook::get_instrument() {
     return _instrument;
 }
