@@ -55,6 +55,8 @@ class OrderHandler {
 
     bool validate_instrument_parameter(const seastar::sstring &parameter, std::unique_ptr<seastar::http::request> &req, std::unique_ptr<seastar::http::reply> &rep, std::string message);
 
+    bool validate_order_side(Side order_side, std::unique_ptr<seastar::http::request> &req, std::unique_ptr<seastar::http::reply> &rep, std::string message);
+
   public:
 
     CreateOrderHandler _create_order_handler;

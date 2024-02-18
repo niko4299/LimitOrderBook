@@ -51,6 +51,8 @@ class Order final {
 
         std::uint64_t get_params_uint64();
 
+        Side get_side();
+
         void set_price(float price);
 
         bool is_buy();

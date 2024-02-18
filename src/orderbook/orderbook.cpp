@@ -222,7 +222,7 @@ Spread OrderBook::get_spread() {
         best_bid_price = best_bid.value()->get_price();
     }
 
-    return {best_bid_price, best_ask_price, best_ask_price - best_bid_price};
+    return {best_bid_price, best_ask_price, _market_price};
 }
 
 OrderStatus OrderBook::cancel_order(std::string_view order_id) {

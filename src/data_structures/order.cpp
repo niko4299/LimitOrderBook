@@ -155,6 +155,10 @@ std::uint64_t Order::get_params_uint64(){
     return static_cast<std::uint64_t>(_params);
 }
 
+Side Order::get_side(){
+    return _side;
+}
+
 
 bool Order::has_param(OrderParams param) const {
     return static_cast<std::uint64_t>(_params) & static_cast<std::uint64_t>(param);
