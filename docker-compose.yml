@@ -1,4 +1,4 @@
-version: "3"
+version: "3.9"
 
 services:
   scylla-trade-repository:
@@ -13,8 +13,18 @@ services:
       - "./scylla/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
       - "./scylla/trade-repository.txt:/trade-repository.txt"
     networks:
-      web:
-    
+      - web
+
+  unlimited-order-book:
+    build:
+      context: ./
+      dockerfile: Dockerfile 
+    ports:
+      - "8000:8000"
+    networks:
+      - web
+    depends_on:
+      - scylla-trade-repository
 
 networks:
   web:
