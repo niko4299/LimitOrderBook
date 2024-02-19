@@ -1,19 +1,17 @@
+#pragma once
+
 #include<unordered_map>
 #include<string>
 #include<memory>
 
 #include "../data_structures/limit.hpp"
 #include "../data_structures/order.hpp"
+#include "../data_structures/spread.hpp"
+#include "../data_structures/snapshot.hpp"
 #include "../storage/rbtree.hpp"
 #include "../repository/order_repository.hpp"
 #include "../repository/trade_repository.hpp"
 #include "../utils/defer.hpp"
-
-struct Spread{
-    float best_bid;
-    float best_ask;
-    float spread;
-};
 
 class OrderBook final{
 
@@ -32,6 +30,8 @@ class OrderBook final{
         std::vector<std::shared_ptr<Order>> get_bid_stop_orders();
 
         std::vector<std::shared_ptr<Order>> get_ask_stop_orders();
+
+        Snapshot get_snapshot();
 
         float get_market_price();
 

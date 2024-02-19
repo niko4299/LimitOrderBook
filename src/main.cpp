@@ -8,41 +8,7 @@
 
 #include "server/server.hpp"
 #include "utils/seastar_signal_catcher.hpp"
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <utility>
-
-std::vector<std::pair<std::string, float>> read_instrument_init_data_from_file(const std::string& file_path) {
-    std::vector<std::pair<std::string, float>> instruments_info;
-
-    std::ifstream input_file(file_path);
-
-    if (!input_file.is_open()) {
-        std::cerr << "Error opening file: " << file_path << std::endl;
-        return instruments_info;
-    }
-
-    std::string line;
-    while (std::getline(input_file, line)) {
-        std::istringstream iss(line);
-
-        std::string symbol;
-        float value;
-
-        if (iss >> symbol >> value) {
-            instruments_info.push_back(std::make_pair(symbol, value));
-        } else {
-            std::cerr << "Error parsing line: " << line << std::endl;
-        }
-    }
-
-    input_file.close();
-
-    return instruments_info;
-}
+#include "utils/file_utils.hpp"
 
 DEFINE_string(server_name, "UnlimitedExchange", "server name.");
 DEFINE_string(server_address, "0.0.0.0", "ip address on which server will listen.");
@@ -51,8 +17,7 @@ DEFINE_string(trade_repository_address, "0.0.0.0", "ip address of scylla databas
 DEFINE_uint32(trade_repository_batch_size, 1, "batch size for inserting into trade repository (currently not supported so value should be set to 1).");
 DEFINE_string(rocksdb_dir, "./order_rocksdb", "order rocksdb directory.");
 DEFINE_uint32(ringbuffer_size, 1024, "ringbuffer size (currently same for all).");
-DEFINE_string(instrument_init_file, "../init/instruments.txt", "initial insturment info.");
-
+DEFINE_string(instrument_init_file, "/home/niko/testProjects/UnlimitedOrderBook/init/instruments.txt", "initial insturment info.");
 
 int main(int argc, char** argv) {
     seastar::app_template app;

@@ -1,7 +1,7 @@
 #include "server.hpp"
 
 
-SeastarServer::SeastarServer(std::string name, std::string address, std::uint16_t port, std::shared_ptr<Exchange>& exchange): _address{address}, _port{port}, _order_handler{exchange} {
+SeastarServer::SeastarServer(std::string name, std::string address, std::uint16_t port, std::shared_ptr<Exchange>& exchange): _address{address}, _port{port}, _order_handler{exchange}, _orderbook_info_handler{exchange} {
     _server = std::make_unique<seastar::httpd::http_server_control>();
 }
 
@@ -10,10 +10,10 @@ void SeastarServer::set_routes(seastar::httpd::routes& routes){
     routes.add(update_order_route(), seastar::httpd::operation_type::PUT);
     routes.add(get_order_route(), seastar::httpd::operation_type::GET);
     routes.add(cancel_order_route(), seastar::httpd::operation_type::PUT);
+    routes.add(get_orderbook_snapshot_route(), seastar::httpd::operation_type::GET);
 }
 
 seastar::httpd::match_rule* SeastarServer::create_order_route(){
-    
     auto new_route = new seastar::httpd::match_rule(&_order_handler._create_order_handler);
     new_route->add_str("/orders");
     new_route->add_param(INSTRUMENT_KEY);
@@ -49,6 +49,15 @@ seastar::httpd::match_rule* SeastarServer::cancel_order_route(){
     cancel_route->add_param(ORDER_ID_KEY);
 
     return cancel_route;
+}
+
+seastar::httpd::match_rule* SeastarServer::get_orderbook_snapshot_route(){
+    auto get_orderbook_snapshot_route = new seastar::httpd::match_rule(&_orderbook_info_handler._snapshot_handler);
+    get_orderbook_snapshot_route->add_str("/orderbook");
+    get_orderbook_snapshot_route->add_param(INSTRUMENT_KEY);
+    get_orderbook_snapshot_route->add_str("/snapshot");
+    
+    return get_orderbook_snapshot_route;
 }
 
 void SeastarServer::start(){

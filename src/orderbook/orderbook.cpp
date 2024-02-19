@@ -222,7 +222,7 @@ Spread OrderBook::get_spread() {
         best_bid_price = best_bid.value()->get_price();
     }
 
-    return {best_bid_price, best_ask_price, best_ask_price - best_bid_price};
+    return {best_bid_price, best_ask_price, _market_price};
 }
 
 OrderStatus OrderBook::cancel_order(std::string_view order_id) {
@@ -339,6 +339,10 @@ void OrderBook::add_ask_stop_orders_above(float price) {
     for (auto& order : orders_to_remove) {
         _ask_stop_orders.remove(order);
     }
+}
+
+Snapshot OrderBook::get_snapshot(){
+    return Snapshot{get_asks(), get_bids(), get_spread()};
 }
 
 std::string_view OrderBook::get_instrument() {

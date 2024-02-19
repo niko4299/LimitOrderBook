@@ -7,10 +7,8 @@
 #include "../../exchange/exchange.hpp"
 #include "../../utils/uuid_generator.hpp"
 #include "../../mappers/orderjson_order_mapper.hpp"
-#include "../response/order_response.hpp"
-
-static inline const seastar::sstring INSTRUMENT_KEY = seastar::sstring("instrument");
-static inline const seastar::sstring ORDER_ID_KEY = seastar::sstring("order_id");
+#include "./response/order_response.hpp"
+#include "consts.hpp"
 
 class OrderHandler {
   public: 
@@ -56,6 +54,8 @@ class OrderHandler {
     bool validate_parameter(const seastar::sstring &parameter, std::unique_ptr<seastar::http::request> &req, std::unique_ptr<seastar::http::reply> &rep, std::string message);
 
     bool validate_instrument_parameter(const seastar::sstring &parameter, std::unique_ptr<seastar::http::request> &req, std::unique_ptr<seastar::http::reply> &rep, std::string message);
+
+    bool validate_order_side(Side order_side, std::unique_ptr<seastar::http::request> &req, std::unique_ptr<seastar::http::reply> &rep, std::string message);
 
   public:
 

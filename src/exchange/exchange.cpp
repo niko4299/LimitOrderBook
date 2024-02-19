@@ -67,6 +67,13 @@ std::optional<std::shared_ptr<Order>> Exchange::get_order(std::string_view order
     return std::move(_order_repo->get(order_id));
 }
 
+// TODO: Refactor this to use snapshot repository (when implemented) and not orderbook directly.
+Snapshot Exchange::get_orderbook_snapshot(std::string_view instrument){
+    auto& orderbook = _instruments[instrument];
+
+    return orderbook->get_snapshot();
+}
+
 std::future<OrderStatus> Exchange::enqueue_task(std::uint32_t& thread_id, std::function<OrderStatus(void)>&& task_function){
     auto task = std::packaged_task<OrderStatus()>(
         std::move(task_function)

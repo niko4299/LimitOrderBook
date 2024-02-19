@@ -2,7 +2,7 @@
 #include <seastar/http/httpd.hh>
 #include <seastar/json/json_elements.hh>
 
-#include "../../data_structures/order.hpp"
+#include "../../../data_structures/order.hpp"
 
 struct SeastarOrderJson : public seastar::json::json_base {
     seastar::json::json_element<std::string> id;

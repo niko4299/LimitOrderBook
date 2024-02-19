@@ -15,6 +15,7 @@
 
 #include "../exchange/exchange.hpp"
 #include "handlers/order_handler.hpp"
+#include "handlers/orderbook_info_handler.hpp"
 
 class SeastarServer {
 
@@ -37,8 +38,11 @@ class SeastarServer {
 
         seastar::httpd::match_rule* cancel_order_route();
 
+        seastar::httpd::match_rule* get_orderbook_snapshot_route();
+
         std::string _address;
         std::uint16_t _port;
         OrderHandler _order_handler;
+        OrderBookInfoHandler _orderbook_info_handler;
         std::unique_ptr<seastar::httpd::http_server_control> _server;
 };

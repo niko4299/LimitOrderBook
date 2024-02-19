@@ -333,19 +333,19 @@ TEST_F(OrderBookFixture, TestAddAFOKOrder){
     }
 }
 
-TEST_F(OrderBookFixture, TestGetSpread){
+TEST_F(OrderBookFixture, TestGetprice){
     auto buy_order_id = "order_id_1";
     auto sell_order_id = "order_id_2";
 
-    // Empty spread
+    // Empty price
     {
-       auto spread = _orderbook->get_spread();
-       ASSERT_FLOAT_EQ(spread.best_ask, -1);
-       ASSERT_FLOAT_EQ(spread.best_bid, -1);
-       ASSERT_FLOAT_EQ(spread.spread, 0);
+       auto price = _orderbook->get_spread();
+       ASSERT_FLOAT_EQ(price.best_ask_price, -1);
+       ASSERT_FLOAT_EQ(price.best_bid_price, -1);
+       ASSERT_FLOAT_EQ(price.market_price, 0);
     }
 
-    // Non empty-spread
+    // Non empty-price
     {
         auto buy_limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",80.5,600.02, Side::BUY, OrderParams::GTC, OrderType::LIMIT);
         _orderbook->add_order(std::move(buy_limit_order));
@@ -353,10 +353,10 @@ TEST_F(OrderBookFixture, TestGetSpread){
         auto sell_limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",80.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
         _orderbook->add_order(std::move(sell_limit_order));
 
-        auto spread = _orderbook->get_spread();
-        ASSERT_FLOAT_EQ(spread.best_ask, 950.02);
-        ASSERT_FLOAT_EQ(spread.best_bid, 600.02);
-        ASSERT_FLOAT_EQ(spread.spread, 350.00);
+        auto price = _orderbook->get_spread();
+        ASSERT_FLOAT_EQ(price.best_ask_price, 950.02);
+        ASSERT_FLOAT_EQ(price.best_bid_price, 600.02);
+        ASSERT_FLOAT_EQ(price.market_price, 350.00);
     }
 }
 
