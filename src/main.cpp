@@ -17,7 +17,7 @@ DEFINE_string(trade_repository_address, "0.0.0.0", "ip address of scylla databas
 DEFINE_uint32(trade_repository_batch_size, 1, "batch size for inserting into trade repository (currently not supported so value should be set to 1).");
 DEFINE_string(rocksdb_dir, "./order_rocksdb", "order rocksdb directory.");
 DEFINE_uint32(ringbuffer_size, 1024, "ringbuffer size (currently same for all).");
-DEFINE_string(instrument_init_file, "/home/niko/testProjects/UnlimitedOrderBook/init/instruments.txt", "initial insturment info.");
+DEFINE_string(instrument_init_file, "../init/instruments.txt", "initial insturment info.");
 
 int main(int argc, char** argv) {
     seastar::app_template app;

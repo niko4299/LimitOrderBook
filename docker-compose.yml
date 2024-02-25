@@ -1,30 +1,47 @@
-version: "3.9"
+version: "3"
 
 services:
   scylla-trade-repository:
     container_name: trade-repository
     image: scylladb/scylla:latest
     restart: always
-    command: --seeds=scylla-trade-repository --smp 1 --memory 750M --overprovisioned 1 --api-address 127.0.0.1
+    command: --seeds=scylla-trade-repository --smp 1 --memory 750M --overprovisioned 1 --api-address 0.0.0.0
     ports:
       - "9042:9042"
     volumes:
       - "./scylla/scylla.yaml:/etc/scylla/scylla.yaml"
       - "./scylla/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
-      - "./scylla/trade-repository.txt:/trade-repository.txt"
     networks:
-      - web
+      web:
 
+  scylladb-load-keyspace:
+    container_name: scylladb-load-keyspace
+    image: cassandra:latest
+    depends_on:
+      - scylla-trade-repository
+    volumes:
+      - ./scylla/trade-repository.txt:/trade-repository.txt
+    command: /bin/bash -c "sleep 60 && echo loading scylladb keyspace && cqlsh scylla-trade-repository -f /trade-repository.txt"
+    networks:
+      web:
   unlimited-order-book:
+    container_name: unlimited-orderbook
     build:
       context: ./
       dockerfile: Dockerfile 
+    depends_on:
+      - scylladb-load-keyspace
+    command:
+      - '/bin/sh'
+      - '-c'
+      - '/bin/sleep 60 && ./UnlimitedOrderBook --trade_repository_address host.docker.internal'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     ports:
       - "8000:8000"
     networks:
-      - web
-    depends_on:
-      - scylla-trade-repository
+      web:
+      
 
 networks:
   web:

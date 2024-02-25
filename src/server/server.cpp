@@ -65,7 +65,7 @@ void SeastarServer::start(){
     _server->set_routes([this](seastar::httpd::routes& r){set_routes(r);}).get();
 
     seastar::net::inet_address addr(_address);
-    _server->listen(seastar::socket_address{addr, _port}).get();
+    _server->listen(seastar::socket_address{_port}).get();
 }
 
 
