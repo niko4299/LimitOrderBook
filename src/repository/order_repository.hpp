@@ -4,9 +4,6 @@
 #include <filesystem>
 #include <thread>
 
-#include <rocksdb/comparator.h>
-#include <rocksdb/db.h>
-#include <rocksdb/iterator.h>
 #include <rocksdb/options.h>
 #include <rocksdb/status.h>
 #include <rocksdb/utilities/transaction_db.h>
