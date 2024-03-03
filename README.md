@@ -88,20 +88,12 @@ The exchange contains information about existing instruments, and each instrumen
     docker run --name trade-repository -d -v $(pwd)/scylla/:/etc/scylla/ scylladb/scylla --smp 1 --memory 750M --overprovisioned 1 --api-address 0.0.0.0
     sudo docker exec -it trade-repository cqlsh -f etc/scylla/trade-repository.txt
      ```
-    Note: wait for scylladb to boot up before running second command.
+    Note: wait for a least 30 sec for scylladb to boot up before running second command.
 
    - Compile and start the project:
 
      ```bash
      mkdir -p build
-     sudo cmake -DCMAKE_BUILD_TYPE=Release ..
-     sudo make -j4 
-     sudo ./UnlimitedOrderBook
-     ```
-
-   - Start sending requests (for example):
-
-     ```bash
      sudo cmake -DCMAKE_BUILD_TYPE=Release ..
      sudo make -j4 
      ./UnlimitedOrderBook --trade_repository_address 172.17.0.2

@@ -158,7 +158,7 @@ class ForwardRBTreeIterator{
         RBTree* rb_tree;
 };
 
-template <typename T>
+template <typename T, typename Compare = std::less<T>>
 class RBTree{
     public:
         using ValueType = T;
@@ -166,13 +166,14 @@ class RBTree{
         using ReverseIterator = ReverseRBTreeIterator<RBTree<T>>;
 
     public:
-     RBTree(){
+     RBTree(const Compare& comparator = Compare()): _comparator(comparator){
         _nil = new Node<T>();
         _nil->is_black = true;
         _root = _nil;
         _first = _root;
         _last = _root;
         _size = 0;
+        
      }
 
      ~RBTree(){
@@ -641,4 +642,6 @@ class RBTree{
      Node<T>* _first;
      Node<T>* _last;
      std::uint64_t _size;
+
+     Compare _comparator;
 };

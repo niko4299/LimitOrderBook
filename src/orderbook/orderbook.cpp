@@ -341,8 +341,28 @@ void OrderBook::add_ask_stop_orders_above(float price) {
     }
 }
 
+std::vector<SnapshotLimit> OrderBook::get_snapshot_bids() {
+    std::vector<SnapshotLimit> bid_orders{};
+
+    for (auto it = _bid_limits.begin(); it.valid(); it++) {
+        bid_orders.push_back(SnapshotLimit{(*it)->get_price(), (*it)->get_active_volume()});
+    }
+
+    return bid_orders;
+}
+
+std::vector<SnapshotLimit> OrderBook::get_snapshot_asks() {
+    std::vector<SnapshotLimit> ask_orders{};
+
+    for (auto it = _ask_limits.begin(); it.valid(); it++) {
+        ask_orders.push_back(SnapshotLimit{(*it)->get_price(), (*it)->get_active_volume()});
+    }
+
+    return ask_orders;
+}
+
 Snapshot OrderBook::get_snapshot(){
-    return Snapshot{get_asks(), get_bids(), get_spread()};
+    return Snapshot{get_snapshot_asks(), get_snapshot_bids(), get_spread()};
 }
 
 std::string_view OrderBook::get_instrument() {

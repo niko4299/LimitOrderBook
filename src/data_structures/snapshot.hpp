@@ -2,8 +2,13 @@
 
 #include "spread.hpp"
 
+struct SnapshotLimit{
+    float price;
+    float qty;
+};
+
 struct Snapshot{
-    std::vector<std::shared_ptr<Order>> asks;
-    std::vector<std::shared_ptr<Order>> bids;
+    std::vector<SnapshotLimit> asks;
+    std::vector<SnapshotLimit> bids;
     Spread spread;
 };

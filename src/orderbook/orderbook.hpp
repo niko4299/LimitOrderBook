@@ -31,6 +31,7 @@ class OrderBook final{
 
         std::vector<std::shared_ptr<Order>> get_ask_stop_orders();
 
+        // TODO: refactor snapshots
         Snapshot get_snapshot();
 
         float get_market_price();
@@ -79,12 +80,16 @@ class OrderBook final{
                          std::shared_ptr<Order>& order, float cross_price,
                          std::vector<std::shared_ptr<Order>>& changed_orders);
 
+        std::vector<SnapshotLimit> get_snapshot_bids();
+
+        std::vector<SnapshotLimit> get_snapshot_asks();
+
         std::string_view _instrument;
         float _market_price;
-        RBTree<std::shared_ptr<Limit>> _ask_limits{};
-        RBTree<std::shared_ptr<Limit>> _bid_limits{};
-        RBTree<std::shared_ptr<Order>> _ask_stop_orders{};
-        RBTree<std::shared_ptr<Order>> _bid_stop_orders{};
+        RBTree<std::shared_ptr<Limit>, LimitComparatorAsc> _ask_limits{};
+        RBTree<std::shared_ptr<Limit>, LimitComparatorDesc> _bid_limits{};
+        RBTree<std::shared_ptr<Order>, OrderComparatorAsc> _ask_stop_orders{};
+        RBTree<std::shared_ptr<Order>, OrderComparatorDesc> _bid_stop_orders{};
         std::unordered_map<std::string_view, std::shared_ptr<Order>> _orders{};
 
         std::shared_ptr<OrderRepository> _order_repository;
