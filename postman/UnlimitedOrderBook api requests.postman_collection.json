@@ -1,0 +1,193 @@
+{
+	"info": {
+		"_postman_id": "c8fefab0-8556-409b-86ae-4b9b3765efe8",
+		"name": "UnlimitedOrderBook api requests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "get snapshot",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/orderbook/AAPL/snapshot",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"orderbook",
+						"AAPL",
+						"snapshot"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get order",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/orders/AAPL/856b101e-3bf6-408d-b1e9-8fda60fb5739",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"orders",
+						"AAPL",
+						"856b101e-3bf6-408d-b1e9-8fda60fb5739"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update order",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"order_id\": \"856b101e-3bf6-408d-b1e9-8fda60fb5739\",\n    \"instrument\": \"AAPL\",\n    \"user_id\": \"123\",\n    \"qty\": 110.0,\n    \"price\": 150.0,\n    \"side\": \"BUY\",\n    \"type\": \"LIMIT\",\n    \"params\": 0,\n    \"stop_price\": 0.0\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/orders/AAPL/update",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"orders",
+						"AAPL",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create order",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"instrument\": \"AAPL\",\n    \"user_id\": \"123\",\n    \"qty\": 100.0,\n    \"price\": 150.0,\n    \"side\": \"BUY\",\n    \"type\": \"LIMIT\",\n    \"params\": 0,\n    \"stop_price\": 0.0\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/orders/AAPL/create",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"orders",
+						"AAPL",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "cancel order",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/orders/AAPL/cancel/b3e69132-f4d2-48ca-881e-c4ebac1c4652",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"orders",
+						"AAPL",
+						"cancel",
+						"b3e69132-f4d2-48ca-881e-c4ebac1c4652"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

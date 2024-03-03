@@ -9,7 +9,12 @@ class OrderJsonOrderMapper {
         explicit OrderJsonOrderMapper() = default;
         
         std::shared_ptr<Order> map_json_to_order(simdjson::ondemand::document& order_json){
-            std::string_view order_id = order_json["user_id"];
+            std::string_view order_id;
+            auto error = order_json["order_id"].get(order_id);
+            if (error){
+                order_id = "";
+            }
+            
             std::string_view instrument = order_json["instrument"];
             std::string_view user_id = order_json["user_id"];
             double qty = order_json["qty"];

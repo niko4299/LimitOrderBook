@@ -10,7 +10,7 @@ services:
       - "9042:9042"
     volumes:
       - "./scylla/scylla.yaml:/etc/scylla/scylla.yaml"
-      - "./scylla/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
+      - "./scylla/cassandra-rackdc.properties:/etc/scylla/cassandra-rackdc.properties"
     networks:
       web:
 

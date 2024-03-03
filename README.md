@@ -76,7 +76,7 @@ The exchange contains information about existing instruments, and each instrumen
 
 3. For local development, follow these steps:
 
-   - If needed, install dependencies:
+   - If needed, install dependencies (check them out before running command):
 
      ```bash
      sudo ./install-dependencies.sh
@@ -85,17 +85,37 @@ The exchange contains information about existing instruments, and each instrumen
    - Start ScyllaDB locally:
 
      ```bash
-     docker run --name trade-repository -d scylladb/scylla
-     docker exec trade-repository cqlsh -f scylla/trade-repository.txt
+    docker run --name trade-repository -d -v $(pwd)/scylla/:/etc/scylla/ scylladb/scylla --smp 1 --memory 750M --overprovisioned 1 --api-address 0.0.0.0
+    sudo docker exec -it trade-repository cqlsh -f etc/scylla/trade-repository.txt
      ```
+    Note: wait for scylladb to boot up before running second command.
 
    - Compile and start the project:
 
      ```bash
+     mkdir -p build
      sudo cmake -DCMAKE_BUILD_TYPE=Release ..
      sudo make -j4 
-     ./UnlimitedOrderBook
+     sudo ./UnlimitedOrderBook
      ```
+
+   - Start sending requests (for example):
+
+     ```bash
+     sudo cmake -DCMAKE_BUILD_TYPE=Release ..
+     sudo make -j4 
+     ./UnlimitedOrderBook --trade_repository_address 172.17.0.2
+     ```
+
+    Supported flags are:
+     - `--server_name`: Specifies the server name. Default value is "UnlimitedExchange".
+     - `--server_address`: Sets the IP address on which the server will listen. Default is "0.0.0.0".
+     - `--server_port`: Configures the port on which the server will listen. Default is 8000.
+     - `--trade_repository_address`: Defines the IP address of the Scylla database used as the trade repository. Default is "172.17.0.2".
+     - `--trade_repository_batch_size`: Sets the batch size for inserting into the trade repository. Currently, only a batch size of 1 is supported, so the value should be set to 1.
+     - `--rocksdb_dir`: Specifies the directory for the order RocksDB. Default is "./order_rocksdb".
+     - `--ringbuffer_size`: Configures the ringbuffer size. Default is 1024 (same for all instances).
+     - `--instrument_init_file`: Sets the path for the initial instrument information file. Default is "../init/instruments.txt".
 
 ## Acknowledgements
 
@@ -104,3 +124,5 @@ The exchange contains information about existing instruments, and each instrumen
 * [ScyllaDB](https://github.com/scylladb/scylladb/)
 * [Seastar](https://github.com/scylladb/seastar)
 * [RocksDB](https://github.com/facebook/rocksdb)
+* [simdjson](https://github.com/simdjson/simdjson)
+* [stduuid](https://github.com/mariusbancila/stduuid.git)
