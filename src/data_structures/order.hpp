@@ -119,30 +119,25 @@ class Order final {
         OrderType _type;
 };
 
+class OrderComparator {
+    
+    public:
+        OrderComparator(bool asc): _asc{asc} {}
 
-struct OrderComparatorAsc
-{
-  bool operator()(const std::shared_ptr<Order>& lhs, const std::shared_ptr<Order>& rhs) const
-  {
-    if( *lhs->get_price() ==  *rhs->get_price()){
-        return *lhs->get_timestamp() < rhs->get_timestamp();
-    }
+        bool operator()(const std::shared_ptr<Order>& lhs, const std::shared_ptr<Order>& rhs) const {
+            if (lhs->get_price() == rhs->get_price()) {
+                return lhs->get_timestamp() < rhs->get_timestamp();
+            }
+            
+            if(_asc){
+                return lhs->get_price() < rhs->get_price();
+            }else{
+                return lhs->get_price() > rhs->get_price();
+            }
+        };
 
-    return *lhs->get_price() < *rhs->get_price()
-  }
-};
-
-
-struct OrderComparatorDesc
-{
-  bool operator()(const std::shared_ptr<Order>& lhs, const std::shared_ptr<Order>& rhs) const
-  {
-    if( *lhs->get_price() ==  *rhs->get_price()){
-        return *lhs->get_timestamp() < rhs->get_timestamp();
-    }
-
-    return *lhs->get_price() > *rhs->get_price()
-  }
+    private:
+     bool _asc{false};
 };
 
 #endif

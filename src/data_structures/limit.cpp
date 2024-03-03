@@ -68,18 +68,6 @@ Side Limit::side() {
     return _head->is_buy() ? Side::BUY : Side::SELL;
 }
 
-// bool Limit::operator==(const Limit& other) const {
-//     return _price == other._price;
-// }
-
-// bool Limit::operator==(const std::shared_ptr<Limit>& other) const {
-//     return _price == other->get_price();
-// }
-
-// bool Limit::operator>(const std::shared_ptr<Limit>& other) const {
-//     return _price > other->get_price();
-// }
-
 template<class Archive>
 void Limit::serialize(Archive &a, const unsigned version){
     a & _price & _number_of_active_orders & _total_number_of_orders & _active_volume & _total_volume;

@@ -50,10 +50,6 @@ class Limit final {
 
         Side side();
 
-    bool operator==(const Limit& other) const {
-        return _price == other._price;
-    }
-
     public:
         std::shared_ptr<Order> _head{};
         std::shared_ptr<Order> _tail{};
@@ -71,21 +67,21 @@ class Limit final {
         double _total_volume{0};
 };
 
-struct LimitComparatorAsc
-{
-  bool operator()(const std::shared_ptr<Limit>& lhs, const std::shared_ptr<Limit>& rhs) const
-  {
-   return *lhs < *rhs
-  }
-};
 
+class LimitComparator {
+    public:
+        LimitComparator(bool asc): _asc{asc} {}
 
-struct LimitComparatorDesc
-{
-  bool operator()(const std::shared_ptr<Limit>& lhs, const std::shared_ptr<Limit>& rhs) const
-  {
-   return *rhs < *lhs
-  }
+        bool operator()(const std::shared_ptr<Limit>& lhs, const std::shared_ptr<Limit>& rhs) const {
+            if(_asc){
+                return lhs->get_price() < rhs->get_price();
+            }else{
+                return lhs->get_price() > rhs->get_price();
+            }
+        };
+
+    private:
+        bool _asc{false};
 };
 
 #endif

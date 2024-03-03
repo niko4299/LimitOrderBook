@@ -119,29 +119,29 @@ TEST_F(RBTreeFixture, TestReColoringAfterAddingLeafNode){
 }
 
 TEST_F(RBTreeFixture, TestInsertBigRightRootRotation){
-  auto test_numbers = {12,9,8,6,5,7,6,6};
+  auto test_numbers = {15,12,7,10,5,9,8,11};
 
   for(auto& number: test_numbers){
     rbtree.insert(number);
   }
 
   auto root = rbtree.get_root();
-  ASSERT_EQ(root->key,7);
+  ASSERT_EQ(root->key,9);
   ASSERT_EQ(root->is_black,true);
-  ASSERT_EQ(root->left->key,6);
+  ASSERT_EQ(root->left->key,7);
   ASSERT_EQ(root->left->is_black,false);
-  ASSERT_EQ(root->right->key,9);
+  ASSERT_EQ(root->right->key,12);
   ASSERT_EQ(root->right->is_black,false);
   ASSERT_EQ(root->left->left->key,5);
   ASSERT_EQ(root->left->left->is_black,true);
-  ASSERT_EQ(root->left->right->key,6);
+  ASSERT_EQ(root->left->right->key,8);
   ASSERT_EQ(root->left->right->is_black,true);
-  ASSERT_EQ(root->left->right->right->key,6);
-  ASSERT_EQ(root->left->right->right->is_black,false);
-  ASSERT_EQ(root->right->left->key,8);
+  ASSERT_EQ(root->right->left->key,10);
   ASSERT_EQ(root->right->left->is_black,true);
-  ASSERT_EQ(root->right->right->key,12);
+  ASSERT_EQ(root->right->right->key,15);
   ASSERT_EQ(root->right->right->is_black,true);
+  ASSERT_EQ(root->right->left->right->key,11);
+  ASSERT_EQ(root->right->left->right->is_black,false);
   ASSERT_EQ(rbtree.size(),test_numbers.size());
 }
 

@@ -14,14 +14,6 @@ struct Node{
     Node(const T& key,bool is_black = false,Node<T>* parent = nullptr,Node<T>* left  = nullptr,Node<T>* right = nullptr) : key {key}, is_black {is_black},parent{parent},left{left},right{right} {}
 
     Node(): parent{nullptr},left{nullptr},right{nullptr}{}
-
-    bool operator==(const Node<T>& other){
-        return other.key == key;
-    }
-
-    bool operator!=(const Node<T>& other){
-        return other.key != key;
-    }
 };
 
 template<class RBTree>
@@ -162,8 +154,8 @@ template <typename T, typename Compare = std::less<T>>
 class RBTree{
     public:
         using ValueType = T;
-        using ForwardIterator = ForwardRBTreeIterator<RBTree<T>>;
-        using ReverseIterator = ReverseRBTreeIterator<RBTree<T>>;
+        using ForwardIterator = ForwardRBTreeIterator<RBTree<T, Compare>>;
+        using ReverseIterator = ReverseRBTreeIterator<RBTree<T, Compare>>;
 
     public:
      RBTree(const Compare& comparator = Compare()): _comparator(comparator){
@@ -224,12 +216,18 @@ class RBTree{
         Node<T>* parent = _nil;
         Node<T>* current = _root;
 
+        bool less = true;
         while (current != _nil) {
             parent = current;
-            if (value < current->key) {
+            if (_comparator(value, current->key)) {
                 current = current->left;
-            } else {
+                less = true;
+            } else if (_comparator(current->key, value)) {
                 current = current->right;
+                less = false;
+            } else{
+                current->key = value;
+                return;
             }
         }
         
@@ -238,7 +236,7 @@ class RBTree{
             _root = new_node;
             _first = new_node;
             _last = new_node;
-        } else if (new_node->key < parent->key) {
+        } else if (less) {
             parent->left = new_node;
         } else {
             parent->right = new_node;
@@ -339,7 +337,7 @@ class RBTree{
         auto node = _root;
 
         while(node != _nil){
-            if (node->key < from ){
+            if (_comparator(node->key,from) ){
                 node = node->right;
             } else {
                 result = node;
@@ -355,8 +353,7 @@ class RBTree{
         auto node = _root;
 
         while(node != _nil){
-
-            if (node->key <= to){
+            if (!_comparator(to,node->key)){
                 node = node->right;
             } else {
                 result = node;
@@ -499,15 +496,17 @@ class RBTree{
     }
 
      Node<T>* search_tree(Node<T>* node,const T& value) noexcept {
-        	while (node != _nil && value != node->key){
-                if (value < node->key){
+        	while (node != _nil){
+                if (_comparator(value, node->key)){
                     node = node->left;
-                } else {
+                } else if (_comparator(node->key, value)){
                     node = node->right;
+                } else{
+                    return node;
                 }
             }
 
-            return node;
+            return _nil;
      }
 
     constexpr void rebalance_insert(Node<T>* node) noexcept {
