@@ -35,7 +35,6 @@ seastar::httpd::match_rule* SeastarServer::get_order_route(){
     auto get_route = new seastar::httpd::match_rule(&_order_handler._get_order_handler);
     get_route->add_str("/orders");
     get_route->add_param(INSTRUMENT_KEY);
-    get_route->add_str("/");
     get_route->add_param(ORDER_ID_KEY);
 
     return get_route;

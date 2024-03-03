@@ -112,7 +112,7 @@ class Order final {
         float _current_qty;
         float _price;
         // used only in stop orders.
-        float _stop_price;
+        float _stop_price{0};
         Side _side;
         bool _cancelled{false};
         OrderParams _params;
