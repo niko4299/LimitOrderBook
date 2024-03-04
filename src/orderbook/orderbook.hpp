@@ -88,8 +88,8 @@ class OrderBook final{
         float _market_price;
         RBTree<std::shared_ptr<Limit>, LimitComparator> _ask_limits{LimitComparator{true}};
         RBTree<std::shared_ptr<Limit>, LimitComparator> _bid_limits{LimitComparator{false}};
-        RBTree<std::shared_ptr<Order>, OrderComparator> _ask_stop_orders{OrderComparator{true}};
-        RBTree<std::shared_ptr<Order>, OrderComparator> _bid_stop_orders{OrderComparator{false}};
+        RBTree<std::shared_ptr<Order>, OrderComparator> _ask_stop_orders{OrderComparator{false}};
+        RBTree<std::shared_ptr<Order>, OrderComparator> _bid_stop_orders{OrderComparator{true}};
         std::unordered_map<std::string_view, std::shared_ptr<Order>> _orders{};
 
         std::shared_ptr<OrderRepository> _order_repository;

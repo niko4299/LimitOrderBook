@@ -13,7 +13,7 @@
 DEFINE_string(server_name, "UnlimitedExchange", "server name.");
 DEFINE_string(server_address, "0.0.0.0", "ip address on which server will listen.");
 DEFINE_uint32(server_port, 8000, "port on which the server will listen.");
-DEFINE_string(trade_repository_address, "172.17.0.2", "ip address of scylla database.");
+DEFINE_string(trade_repository_address, "0.0.0.0", "ip address of scylla database.");
 DEFINE_uint32(trade_repository_batch_size, 1, "batch size for inserting into trade repository (currently not supported so value should be set to 1).");
 DEFINE_string(rocksdb_dir, "./order_rocksdb", "order rocksdb directory.");
 DEFINE_uint32(ringbuffer_size, 1024, "ringbuffer size (currently same for all).");
