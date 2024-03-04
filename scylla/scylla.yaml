@@ -1,0 +1,47 @@
+# Scylla storage config YAML
+
+cluster_name: 'UnlimitedOrderbook Cluster'
+
+num_tokens: 256
+
+data_file_directories:
+    - /var/lib/scylla/data
+
+commitlog_directory: /var/lib/scylla/commitlog
+commitlog_sync: periodic
+commitlog_sync_period_in_ms: 10000
+commitlog_segment_size_in_mb: 32
+
+seed_provider:
+    # Addresses of hosts that are deemed contact points. 
+    # Scylla nodes use this list of hosts to find each other and learn
+    # the topology of the ring.  You must change this if you are running
+    # multiple nodes!
+    - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+      parameters:
+          # seeds is actually a comma-delimited list of addresses.
+          # Ex: "<ip1>,<ip2>,<ip3>"
+          - seeds: "127.0.0.1"
+
+# Address or interface to bind to and tell other Scylla nodes to connect to.
+# You _must_ change this if you want multiple nodes to be able to communicate!
+#
+# Setting listen_address to 0.0.0.0 is always wrong.
+listen_address: localhost
+native_transport_port: 9042
+read_request_timeout_in_ms: 5000
+write_request_timeout_in_ms: 2000
+endpoint_snitch: GossipingPropertyFileSnitch
+rpc_address: localhost
+rpc_port: 9160
+
+# port for REST API server
+api_port: 10000
+
+# IP for the REST API server
+api_address: 127.0.0.1
+batch_size_warn_threshold_in_kb: 5
+batch_size_fail_threshold_in_kb: 50
+partitioner: org.apache.cassandra.dht.Murmur3Partitioner
+murmur3_partitioner_ignore_msb_bits: 12
+force_schema_commit_log: true
