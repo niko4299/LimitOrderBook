@@ -85,9 +85,10 @@ The exchange contains information about existing instruments, and each instrumen
    - Start ScyllaDB locally:
 
      ```bash
-    docker run --name trade-repository -d -v $(pwd)/scylla/:/etc/scylla/ scylladb/scylla --smp 1 --memory 750M --overprovisioned 1 --api-address 0.0.0.0
-    sudo docker exec -it trade-repository cqlsh -f etc/scylla/trade-repository.txt
+      docker run --name trade-repository -d -v $(pwd)/scylla/:/etc/scylla/ scylladb/scylla --smp 1 --memory 750M --overprovisioned 1 --api-address 0.0.0.0
+      sudo docker exec -it trade-repository cqlsh -f etc/scylla/trade-repository.txt
      ```
+     
     Note: wait for a least 30 sec for scylladb to boot up before running second command.
 
    - Compile and start the project:
