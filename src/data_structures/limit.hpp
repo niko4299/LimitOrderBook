@@ -50,10 +50,6 @@ class Limit final {
 
         Side side();
 
-        bool operator>(const Limit& other);
-
-        bool operator=(const Limit& other);
-
     public:
         std::shared_ptr<Order> _head{};
         std::shared_ptr<Order> _tail{};
@@ -70,4 +66,22 @@ class Limit final {
         double _active_volume{0};
         double _total_volume{0};
 };
+
+
+class LimitComparator {
+    public:
+        LimitComparator(bool asc): _asc{asc} {}
+
+        bool operator()(const std::shared_ptr<Limit>& lhs, const std::shared_ptr<Limit>& rhs) const {
+            if(_asc){
+                return lhs->get_price() < rhs->get_price();
+            }else{
+                return lhs->get_price() > rhs->get_price();
+            }
+        };
+
+    private:
+        bool _asc{false};
+};
+
 #endif
