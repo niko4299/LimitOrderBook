@@ -25,7 +25,10 @@ TEST_F(OrderRepositoryFixture, TestSave){
   ASSERT_TRUE(saved);
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 TEST_F(OrderRepositoryFixture, TestGet){
   std::string order_id = "order_id";
   auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
