@@ -65,7 +65,11 @@ void OrderRepository::process_messages(std::stop_token s){
     std::shared_ptr<Order> order;
     while(!s.stop_requested()){
         if(_ring_buffer->pop(order)){
-            save(order);
+            if(order->is_cancelled() || order->is_fullfilled()){
+                remove(order->get_id());
+            } else{
+                save(order);
+            }
         }
     } 
 }
@@ -74,10 +78,37 @@ bool OrderRepository::save(std::shared_ptr<Order>& order) {
     std::ostringstream oss;
     boost::archive::text_oarchive oa(oss);
     oa << order;
+    auto write_options = rocksdb::WriteOptions();
+    write_options.sync = true;
 
-    auto status = _db->Put(rocksdb::WriteOptions(), _order_handler, order->get_id(), oss.str());
+    auto status = _db->Put(write_options, _order_handler, order->get_id(), oss.str());
 
     return status.ok();
+}
+
+bool OrderRepository::remove(std::string_view order_id) {
+    auto write_options = rocksdb::WriteOptions();
+    write_options.sync = true;
+
+    auto status = _db->Delete(write_options, _order_handler, order_id);
+
+    return status.ok();
+}
+
+std::vector<std::shared_ptr<Order>> OrderRepository::get_all(){
+    std::vector<std::shared_ptr<Order>> orders;
+    rocksdb::Iterator* it = _db->NewIterator(rocksdb::ReadOptions(), _order_handler);
+    for (it->SeekToFirst(); it->Valid(); it->Next()){
+        std::shared_ptr<Order> ret_order;
+        std::istringstream iss(it->value().ToString());
+        boost::archive::text_iarchive ia(iss);
+        ia >> ret_order;
+        orders.emplace_back(ret_order);
+    }
+
+    delete it;
+
+    return orders;
 }
 
 std::optional<std::shared_ptr<Order>> OrderRepository::get(std::string_view order_id) {
