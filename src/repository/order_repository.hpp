@@ -28,7 +28,11 @@ class OrderRepository{
 
         bool save(std::shared_ptr<Order>& order);
 
+        bool remove(std::string_view order_id);
+
         std::optional<std::shared_ptr<Order>> get(std::string_view order_id);
+
+        std::vector<std::shared_ptr<Order>> get_all();
 
         void enqueue(std::shared_ptr<Order>& order) const;
 

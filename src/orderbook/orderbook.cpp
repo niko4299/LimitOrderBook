@@ -1,10 +1,21 @@
 #include "orderbook.hpp"
 
-OrderBook::OrderBook(std::string_view instrument, float market_price, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository)
-    : _instrument{instrument},
+OrderBook::OrderBook(std::string_view instrument, float market_price, std::shared_ptr<OrderRepository>& order_repository, std::shared_ptr<TradeRepository>& trade_repository):
+     _instrument{instrument},
      _market_price{market_price},
      _order_repository{order_repository},
-     _trade_repository{trade_repository} {}
+     _trade_repository{trade_repository} {
+     
+     auto orders = order_repository->get_all();
+     for(auto& order: orders){
+        if(order->has_param(OrderParams::STOP)){
+            add_stop_order(order, order->is_buy() ? _bid_stop_orders : _ask_stop_orders);
+        }else{
+            auto limit = std::make_shared<Limit>(order->get_price());
+            add_limit_order(order, limit, order->is_buy() ? _bid_limits : _ask_limits);
+        }
+     }
+    }
 
 
 std::uint64_t OrderBook::size() {
