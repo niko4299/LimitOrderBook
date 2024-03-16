@@ -58,7 +58,7 @@ OrderStatus OrderBook::add_order(std::shared_ptr<Order>&& order) {
     return OrderStatus::ACCEPTED;   
 }
 
-void OrderBook::add_limit_order(std::shared_ptr<Order>& order, std::shared_ptr<Limit>& limit, RBTree<std::shared_ptr<Limit>>& limits) {
+void OrderBook::add_limit_order(std::shared_ptr<Order>& order, std::shared_ptr<Limit>& limit, RBTree<std::shared_ptr<Limit>, LimitComparator>& limits) {
     auto& maybe_orderbook_limit = limits.find(limit);
     if (maybe_orderbook_limit.has_value()) {
         auto orderbook_limit = *maybe_orderbook_limit;
@@ -128,7 +128,7 @@ void OrderBook::remove_limit_order(std::shared_ptr<Order>& orderbook_entry) {
     _orders.erase(orderbook_entry->get_id());
 }
 
-bool OrderBook::match_order(std::shared_ptr<Order>& order, RBTree<std::shared_ptr<Limit>>& limits) {
+bool OrderBook::match_order(std::shared_ptr<Order>& order, RBTree<std::shared_ptr<Limit>, LimitComparator>& limits) {
     const bool is_aon = order->has_param(OrderParams::AON);
     const bool is_buy = order->is_buy();
     const auto order_type = order->get_type();
@@ -254,7 +254,7 @@ OrderStatus OrderBook::cancel_order(std::string_view order_id) {
     return OrderStatus::NOT_FOUND;
 }
 
-void OrderBook::add_stop_order(std::shared_ptr<Order>& order, RBTree<std::shared_ptr<Order>>& orders) {
+void OrderBook::add_stop_order(std::shared_ptr<Order>& order, RBTree<std::shared_ptr<Order>, OrderComparator>& orders) {
     orders.insert(order);
 }
 
@@ -352,8 +352,28 @@ void OrderBook::add_ask_stop_orders_above(float price) {
     }
 }
 
+std::vector<SnapshotLimit> OrderBook::get_snapshot_bids() {
+    std::vector<SnapshotLimit> bid_orders{};
+
+    for (auto it = _bid_limits.begin(); it.valid(); it++) {
+        bid_orders.push_back(SnapshotLimit{(*it)->get_price(), (*it)->get_active_volume()});
+    }
+
+    return bid_orders;
+}
+
+std::vector<SnapshotLimit> OrderBook::get_snapshot_asks() {
+    std::vector<SnapshotLimit> ask_orders{};
+
+    for (auto it = _ask_limits.begin(); it.valid(); it++) {
+        ask_orders.push_back(SnapshotLimit{(*it)->get_price(), (*it)->get_active_volume()});
+    }
+
+    return ask_orders;
+}
+
 Snapshot OrderBook::get_snapshot(){
-    return Snapshot{get_asks(), get_bids(), get_spread()};
+    return Snapshot{get_snapshot_asks(), get_snapshot_bids(), get_spread()};
 }
 
 std::string_view OrderBook::get_instrument() {

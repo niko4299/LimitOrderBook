@@ -135,11 +135,11 @@ struct SeastarSnapshotJson : public seastar::json::json_base {
         std::vector<SeastarLimitJson> temp_bids{};
 
         for(auto limit: snapshot.asks){
-            temp_asks.emplace_back(SeastarLimitJson(limit->get_price(), limit->get_qty()));
+            temp_asks.emplace_back(SeastarLimitJson(limit.price, limit.qty));
         }
 
         for(auto limit: snapshot.bids){
-            temp_bids.emplace_back(SeastarLimitJson(limit->get_price(), limit->get_qty()));
+            temp_bids.emplace_back(SeastarLimitJson(limit.price, limit.qty));
         }
 
         this->asks = temp_asks;
