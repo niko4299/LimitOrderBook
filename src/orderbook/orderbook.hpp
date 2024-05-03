@@ -44,6 +44,8 @@ class OrderBook final{
 
         OrderStatus modify_order(std::shared_ptr<Order>&& order);
 
+        void check_date_orders();
+
         uint64_t size();
 
     private:
@@ -90,6 +92,7 @@ class OrderBook final{
         RBTree<std::shared_ptr<Limit>, LimitComparator> _bid_limits{LimitComparator{false}};
         RBTree<std::shared_ptr<Order>, OrderComparator> _ask_stop_orders{OrderComparator{false}};
         RBTree<std::shared_ptr<Order>, OrderComparator> _bid_stop_orders{OrderComparator{true}};
+        RBTree<std::shared_ptr<Order>, DateOrderComparator> _date_orders{DateOrderComparator{true}};
         std::unordered_map<std::string_view, std::shared_ptr<Order>> _orders{};
 
         std::shared_ptr<OrderRepository> _order_repository;

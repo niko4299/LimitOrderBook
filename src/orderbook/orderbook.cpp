@@ -54,6 +54,9 @@ OrderStatus OrderBook::add_order(std::shared_ptr<Order>&& order) {
     auto limit = std::make_shared<Limit>(order->get_price());
     add_limit_order(order, limit, is_buy ? _bid_limits : _ask_limits);
     _orders[order->get_id()] = order;
+    if(order->has_param(OrderParams::GFD) || order->has_param(OrderParams::GTD)){
+        _date_orders.insert(order);
+    }
 
     return OrderStatus::ACCEPTED;   
 }
@@ -409,3 +412,23 @@ void OrderBook::handle_trade(std::shared_ptr<Order>& recieved_order, std::shared
         
         _trade_repository->enqueue(trade);
 }
+
+void OrderBook::check_date_orders(){
+    std::vector<std::shared_ptr<Order>> removed_orders;
+
+    Defer([&]{
+        for(auto& order: removed_orders){
+            _date_orders.remove(order);
+        }
+    });
+
+    std::time_t now = std::time(0) + 3600; // add one hour
+
+    for(auto it = _date_orders.begin(); it.valid(); it++)
+        if((*it)->get_expire_time() < now){
+            cancel_order((*it)->get_id());
+            removed_orders.push_back(*it);
+        }else{
+            break;
+        }
+};

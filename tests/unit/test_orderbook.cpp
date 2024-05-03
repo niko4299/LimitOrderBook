@@ -23,7 +23,7 @@ TEST_F(OrderBookFixture, TestAddStopOrder){
 
     // Add limit bid stop order
     {
-        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,950.02,950.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
+        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,950.02,950.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bid_stop_orders().size(),1);
@@ -32,7 +32,7 @@ TEST_F(OrderBookFixture, TestAddStopOrder){
 
     // Add limit ask stop order
     {
-        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::SELL,OrderParams::STOP, OrderType::LIMIT);
+        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::SELL,OrderParams::STOP, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bid_stop_orders().size(),1);
@@ -41,7 +41,7 @@ TEST_F(OrderBookFixture, TestAddStopOrder){
 
     // Add limit bid stop order that get processed immediatly
     {
-        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
+        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bid_stop_orders().size(),1);
@@ -51,7 +51,7 @@ TEST_F(OrderBookFixture, TestAddStopOrder){
 
     // Add limit ask stop order that get processed immediatly
     {
-        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,900.02,900.02,Side::SELL,OrderParams::STOP, OrderType::LIMIT);
+        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,900.02,900.02,Side::SELL,OrderParams::STOP, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bid_stop_orders().size(),1);
@@ -62,7 +62,7 @@ TEST_F(OrderBookFixture, TestAddStopOrder){
 
     // Add market bid stop order
     {
-        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,950.02,950.02,Side::BUY,OrderParams::STOP, OrderType::MARKET);
+        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,950.02,950.02,Side::BUY,OrderParams::STOP, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bid_stop_orders().size(),2);
@@ -71,7 +71,7 @@ TEST_F(OrderBookFixture, TestAddStopOrder){
 
     // Add market ask stop order
     {
-        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1200.02,1200.02,Side::SELL,OrderParams::STOP, OrderType::MARKET);
+        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1200.02,1200.02,Side::SELL,OrderParams::STOP, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bid_stop_orders().size(),2);
@@ -80,7 +80,7 @@ TEST_F(OrderBookFixture, TestAddStopOrder){
 
     // Add market bid stop order that get processed immediatly
     {
-        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::MARKET);
+        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bid_stop_orders().size(),2);
@@ -90,7 +90,7 @@ TEST_F(OrderBookFixture, TestAddStopOrder){
 
     // Add market ask stop order that get processed immediatly
     {
-        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,900.02,900.02,Side::SELL,OrderParams::STOP, OrderType::MARKET);
+        auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,900.02,900.02,Side::SELL,OrderParams::STOP, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bid_stop_orders().size(),2);
@@ -105,7 +105,7 @@ TEST_F(OrderBookFixture, TestAddGTCOrder){
 
     // Add GTC buy limit order
     {
-        auto order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::GTC, OrderType::LIMIT);
+        auto order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),1);
@@ -114,7 +114,7 @@ TEST_F(OrderBookFixture, TestAddGTCOrder){
 
     // Add GTC sell limit order
     {
-        auto order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+        auto order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,1000.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bids().size(), 1);
@@ -142,7 +142,7 @@ TEST_F(OrderBookFixture, TestAddIOCOrder){
 
     // Add IOC buy market order which gets cancelled
     {
-        auto order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::IOC, OrderType::MARKET);
+        auto order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::IOC, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -151,10 +151,10 @@ TEST_F(OrderBookFixture, TestAddIOCOrder){
 
     // Add IOC buy market order which gets matched
     {
-        auto limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+        auto limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(limit_order));
 
-        auto market_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::IOC, OrderType::MARKET);
+        auto market_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::IOC, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(market_order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -163,7 +163,7 @@ TEST_F(OrderBookFixture, TestAddIOCOrder){
 
     // Add IOC sell market order which gets cancelled
     {
-        auto order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::IOC, OrderType::MARKET);
+        auto order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::IOC, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -172,10 +172,10 @@ TEST_F(OrderBookFixture, TestAddIOCOrder){
 
     // Add IOC sell market order which gets matched
     {
-        auto limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::GTC, OrderType::LIMIT);
+        auto limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(limit_order));
 
-        auto market_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::IOC, OrderType::MARKET);
+        auto market_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::IOC, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(market_order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -189,7 +189,7 @@ TEST_F(OrderBookFixture, TestAddAONOrder){
 
     // Add AON buy market order which gets cancelled
     {
-        auto order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::AON, OrderType::MARKET);
+        auto order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::AON, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -198,10 +198,10 @@ TEST_F(OrderBookFixture, TestAddAONOrder){
 
     // Add AON buy market order which gets cancelled because there is not same or bigger size sell limit
     {
-        auto limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",80.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+        auto limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",80.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(limit_order));
 
-        auto market_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",99.5,950.02,Side::BUY, OrderParams::AON, OrderType::MARKET);
+        auto market_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",99.5,950.02,Side::BUY, OrderParams::AON, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(market_order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -210,11 +210,11 @@ TEST_F(OrderBookFixture, TestAddAONOrder){
 
     // Add AON buy market order which get matched
     {
-        auto limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+        auto limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(limit_order));
         ASSERT_EQ(_orderbook->get_asks().size(), 2);
 
-        auto market_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::AON, OrderType::MARKET);
+        auto market_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::AON, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(market_order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -223,7 +223,7 @@ TEST_F(OrderBookFixture, TestAddAONOrder){
 
     // Add AON sell market order which gets cancelled
     {
-        auto order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::AON, OrderType::MARKET);
+        auto order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::AON, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -232,12 +232,12 @@ TEST_F(OrderBookFixture, TestAddAONOrder){
 
     // Add AON sell market order which gets cancelled because there is not same or bigger size buy limit
     {
-        auto limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",80.5,600.02, Side::BUY, OrderParams::GTC, OrderType::LIMIT);
+        auto limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",80.5,600.02, Side::BUY, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(limit_order));
         ASSERT_EQ(_orderbook->get_bids().size(),1);
 
 
-        auto market_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",99.5,600.02,Side::SELL, OrderParams::AON, OrderType::MARKET);
+        auto market_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",99.5,600.02,Side::SELL, OrderParams::AON, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(market_order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),1);
@@ -246,11 +246,11 @@ TEST_F(OrderBookFixture, TestAddAONOrder){
 
     // Add AON sell market order which gets matched
     {
-        auto limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,600.02, Side::BUY, OrderParams::GTC, OrderType::LIMIT);
+        auto limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,600.02, Side::BUY, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(limit_order));
         ASSERT_EQ(_orderbook->get_bids().size(),2);
 
-        auto market_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,600.02,Side::SELL, OrderParams::AON, OrderType::MARKET);
+        auto market_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,600.02,Side::SELL, OrderParams::AON, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(market_order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),1);
@@ -264,7 +264,7 @@ TEST_F(OrderBookFixture, TestAddAFOKOrder){
 
     // Add AON buy market order which gets cancelled
     {
-        auto order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::FOK, OrderType::MARKET);
+        auto order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::FOK, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -273,10 +273,10 @@ TEST_F(OrderBookFixture, TestAddAFOKOrder){
 
     // Add AON buy market order which gets cancelled because there is not same or bigger size sell limit
     {
-        auto limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",80.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+        auto limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",80.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(limit_order));
 
-        auto market_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",99.5,950.02,Side::BUY, OrderParams::FOK, OrderType::MARKET);
+        auto market_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",99.5,950.02,Side::BUY, OrderParams::FOK, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(market_order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -285,11 +285,11 @@ TEST_F(OrderBookFixture, TestAddAFOKOrder){
 
     // Add AON buy market order which get matched
     {
-        auto limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+        auto limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(limit_order));
         ASSERT_EQ(_orderbook->get_asks().size(), 2);
 
-        auto market_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::FOK, OrderType::MARKET);
+        auto market_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,950.02,Side::BUY, OrderParams::FOK, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(market_order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -298,7 +298,7 @@ TEST_F(OrderBookFixture, TestAddAFOKOrder){
 
     // Add AON sell market order which gets cancelled
     {
-        auto order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::FOK, OrderType::MARKET);
+        auto order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,950.02,Side::SELL, OrderParams::FOK, OrderType::MARKET, time(0));
         _orderbook->add_order(std::move(order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),0);
@@ -307,12 +307,12 @@ TEST_F(OrderBookFixture, TestAddAFOKOrder){
 
     // Add AON sell market order which gets cancelled because there is not same or bigger size buy limit
     {
-        auto limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",80.5,600.02, Side::BUY, OrderParams::GTC, OrderType::LIMIT);
+        auto limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",80.5,600.02, Side::BUY, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(limit_order));
         ASSERT_EQ(_orderbook->get_bids().size(),1);
 
 
-        auto market_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",99.5,600.02,Side::SELL, OrderParams::FOK, OrderType::MARKET);
+        auto market_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",99.5,600.02,Side::SELL, OrderParams::FOK, OrderType::MARKET,time(0));
         _orderbook->add_order(std::move(market_order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),1);
@@ -321,11 +321,11 @@ TEST_F(OrderBookFixture, TestAddAFOKOrder){
 
     // Add AON sell market order which gets matched
     {
-        auto limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,600.02, Side::BUY, OrderParams::GTC, OrderType::LIMIT);
+        auto limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",100.5,600.02, Side::BUY, OrderParams::GTC, OrderType::LIMIT, time(0));
         _orderbook->add_order(std::move(limit_order));
         ASSERT_EQ(_orderbook->get_bids().size(),2);
 
-        auto market_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,600.02,Side::SELL, OrderParams::FOK, OrderType::MARKET);
+        auto market_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",100.5,600.02,Side::SELL, OrderParams::FOK, OrderType::MARKET,time(0));
         _orderbook->add_order(std::move(market_order));
 
         ASSERT_EQ(_orderbook->get_bids().size(),1);
@@ -347,10 +347,10 @@ TEST_F(OrderBookFixture, TestGetprice){
 
     // Non empty-price
     {
-        auto buy_limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",80.5,600.02, Side::BUY, OrderParams::GTC, OrderType::LIMIT);
+        auto buy_limit_order = std::make_shared<Order>(buy_order_id,"f_instrument","test_user",80.5,600.02, Side::BUY, OrderParams::GTC, OrderType::LIMIT,time(0));
         _orderbook->add_order(std::move(buy_limit_order));
 
-        auto sell_limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",80.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT);
+        auto sell_limit_order = std::make_shared<Order>(sell_order_id,"f_instrument","test_user",80.5,950.02,Side::SELL, OrderParams::GTC, OrderType::LIMIT,time(0));
         _orderbook->add_order(std::move(sell_limit_order));
 
         auto price = _orderbook->get_spread();

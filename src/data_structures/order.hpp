@@ -21,10 +21,10 @@ class Order final {
     public:
         Order() = default;
 
-        Order(std::string_view id, std::string_view instrument, std::string_view user_id, float qty, float price, Side side, OrderParams params, OrderType type);
-        Order(std::string_view instrument, std::string_view user_id, float qty, float price, Side side, OrderParams params, OrderType type);
-        Order(std::string_view id, std::string_view instrument, std::string_view user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type);
-        Order(std::string_view instrument, std::string_view user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type);
+        Order(std::string_view id, std::string_view instrument, std::string_view user_id, float qty, float price, Side side, OrderParams params, OrderType type, time_t expire_time);
+        Order(std::string_view instrument, std::string_view user_id, float qty, float price, Side side, OrderParams params, OrderType type, time_t expire_time);
+        Order(std::string_view id, std::string_view instrument, std::string_view user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type, time_t expire_time);
+        Order(std::string_view instrument, std::string_view user_id, float qty, float price, float stop_price, Side side, OrderParams params, OrderType type, time_t expire_time);
 
         ~Order() = default;
         
@@ -84,6 +84,11 @@ class Order final {
         std::shared_ptr<Limit>& get_limit_parent();
 
         std::string& get_instrument();
+
+        void set_expire_time(uint64_t time_unix);
+
+        std::time_t get_expire_time();
+
         
         bool operator==(const Order& other);
 
@@ -99,7 +104,7 @@ class Order final {
 
         template<class Archive>
         void serialize(Archive &a, const unsigned version){
-          a & _id & _instrument & _user_id &  _timestamp & _qty & _current_qty & _price & _cancelled & _side & _type & _params;
+          a & _id & _instrument & _user_id &  _timestamp & _qty & _current_qty & _price & _cancelled & _side & _type & _params & _expire_time;
         }
 
 
@@ -117,6 +122,7 @@ class Order final {
         bool _cancelled{false};
         OrderParams _params;
         OrderType _type;
+        std::time_t _expire_time;
 };
 
 class OrderComparator {
@@ -134,6 +140,22 @@ class OrderComparator {
             }else{
                 return lhs->get_price() > rhs->get_price();
             }
+        };
+
+    private:
+     bool _asc{false};
+};
+
+class DateOrderComparator {
+    public:
+        DateOrderComparator(bool asc): _asc{asc} {}
+
+        bool operator()(const std::shared_ptr<Order>& lhs, const std::shared_ptr<Order>& rhs) const {
+            if(_asc){
+                return lhs->get_expire_time() < rhs->get_expire_time();
+            }
+
+            return lhs->get_expire_time() > rhs->get_expire_time();
         };
 
     private:
