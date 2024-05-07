@@ -74,7 +74,7 @@ The exchange contains information about existing instruments, and each instrumen
 
 2. In the `postman/` directory, you can find a collection of API requests to play around with.
 
-3. For local development, follow these steps:
+3. For local development (developed and tested on linux OS), follow these steps:
 
    - If needed, install dependencies (check them out before running command):
 
