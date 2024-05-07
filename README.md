@@ -97,7 +97,7 @@ The exchange contains information about existing instruments, and each instrumen
      mkdir -p build
      sudo cmake -DCMAKE_BUILD_TYPE=Release ..
      sudo make -j4 
-     ./UnlimitedOrderBook --trade_repository_address 172.17.0.2
+     ./UnlimitedOrderBook
      ```
 
     Supported flags are:
