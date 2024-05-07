@@ -13,7 +13,7 @@ class ExchangeTest : public ::testing::Test {
     protected:
         virtual void SetUp() {
             _order_repository = std::make_shared<OrderRepository>("./db_path_test", 100);
-            _trade_repository = std::make_shared<TradeRepository>("0.0.0.0", 1, 100);
+            _trade_repository = std::make_shared<TradeRepository>("172.17.0.2",100,100);
         }
 
         virtual void TearDown() {

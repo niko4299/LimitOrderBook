@@ -48,6 +48,8 @@ class OrderBook final{
 
         uint64_t size();
 
+        std::vector<std::shared_ptr<Order>> get_orders_with_experation();
+
     private:
         void add_limit_order(std::shared_ptr<Order>& order, std::shared_ptr<Limit>& limit, RBTree<std::shared_ptr<Limit>, LimitComparator>& limits);
 

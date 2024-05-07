@@ -33,6 +33,10 @@ OrderStatus OrderBook::add_order(std::shared_ptr<Order>&& order) {
         // otherwise process immediately.
         if ((is_buy && _market_price > order->get_stop_price()) || (!is_buy && _market_price < order->get_stop_price())) {
             add_stop_order(order, is_buy ? _bid_stop_orders : _ask_stop_orders);
+
+            if(order->has_param(OrderParams::GFD) || order->has_param(OrderParams::GTD)){
+                 _date_orders.insert(order);
+            }
             
             return OrderStatus::ACCEPTED;
         }
@@ -54,6 +58,7 @@ OrderStatus OrderBook::add_order(std::shared_ptr<Order>&& order) {
     auto limit = std::make_shared<Limit>(order->get_price());
     add_limit_order(order, limit, is_buy ? _bid_limits : _ask_limits);
     _orders[order->get_id()] = order;
+
     if(order->has_param(OrderParams::GFD) || order->has_param(OrderParams::GTD)){
         _date_orders.insert(order);
     }
@@ -413,22 +418,32 @@ void OrderBook::handle_trade(std::shared_ptr<Order>& recieved_order, std::shared
         _trade_repository->enqueue(trade);
 }
 
+
+// Run at the end of each day.
 void OrderBook::check_date_orders(){
     std::vector<std::shared_ptr<Order>> removed_orders;
-
-    Defer([&]{
-        for(auto& order: removed_orders){
-            _date_orders.remove(order);
-        }
-    });
-
     std::time_t now = std::time(0) + 3600; // add one hour
 
-    for(auto it = _date_orders.begin(); it.valid(); it++)
-        if((*it)->get_expire_time() < now){
+    for(auto it = _date_orders.begin(); it.valid(); it++){
+        if((*it)->has_param(OrderParams::GFD) || (*it)->get_expire_time() < now){
             cancel_order((*it)->get_id());
             removed_orders.push_back(*it);
         }else{
             break;
         }
-};
+    }
+
+    for(auto& order: removed_orders){
+        _date_orders.remove(order);
+    }
+}
+
+std::vector<std::shared_ptr<Order>> OrderBook::get_orders_with_experation(){
+    std::vector<std::shared_ptr<Order>> orders;
+
+    for (auto it = _date_orders.begin(); it.valid(); it++) {
+        orders.push_back(*it);
+    }
+
+    return orders;
+}
