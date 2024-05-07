@@ -19,7 +19,7 @@ Welcome to UnlimitedOrderBook, a C++ project created based on my findings and pe
 * [x] Basic orderbook functionalities
 * [x] Add Trade repository and order repository
 * [x] Add server functionalities
-* [ ] GFD, GTC, GTD orders
+* [x] GFD, GTC, GTD orders
 * [ ] Implement a proper way of doing orderbook snapshots
 * [ ] Perform comprehensive benchmarking
 * [ ] Add Python bindings
@@ -74,7 +74,7 @@ The exchange contains information about existing instruments, and each instrumen
 
 2. In the `postman/` directory, you can find a collection of API requests to play around with.
 
-3. For local development, follow these steps:
+3. For local development (developed and tested on linux OS), follow these steps:
 
    - If needed, install dependencies (check them out before running command):
 
@@ -97,7 +97,7 @@ The exchange contains information about existing instruments, and each instrumen
      mkdir -p build
      sudo cmake -DCMAKE_BUILD_TYPE=Release ..
      sudo make -j4 
-     ./UnlimitedOrderBook --trade_repository_address 172.17.0.2
+     ./UnlimitedOrderBook
      ```
 
     Supported flags are:

@@ -18,7 +18,7 @@ class OrderRepositoryFixture : public testing::Test {
 };
 
 TEST_F(OrderRepositoryFixture, TestSave){
-  auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
+  auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT, time(0));
 
   auto saved = _order_repository->save(order);
 
@@ -27,7 +27,7 @@ TEST_F(OrderRepositoryFixture, TestSave){
 
 TEST_F(OrderRepositoryFixture, TestGet){
   std::string order_id = "order_id";
-  auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
+  auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT, time(0));
   auto saved = _order_repository->save(order);
   ASSERT_TRUE(saved);
 
@@ -47,7 +47,7 @@ TEST_F(OrderRepositoryFixture, TestGet){
 }
 
 TEST_F(OrderRepositoryFixture, TestRemove){
-  auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
+  auto order = std::make_shared<Order>("order_id","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT, time(0));
 
   auto saved = _order_repository->save(order);
 
@@ -65,11 +65,11 @@ TEST_F(OrderRepositoryFixture, TestRemove){
 }
 
 TEST_F(OrderRepositoryFixture, TestGetAll){
-  auto order_1 = std::make_shared<Order>("order_id_1","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT);
+  auto order_1 = std::make_shared<Order>("order_id_1","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::STOP, OrderType::LIMIT, time(0));
 
   auto saved = _order_repository->save(order_1);
 
-  auto order_2 = std::make_shared<Order>("order_id_2","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::GTC, OrderType::LIMIT);
+  auto order_2 = std::make_shared<Order>("order_id_2","f_instrument","test_user",100.5,1100.02,1100.02,Side::BUY,OrderParams::GTC, OrderType::LIMIT, time(0));
 
   saved = _order_repository->save(order_2);
 
