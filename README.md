@@ -19,7 +19,7 @@ Welcome to UnlimitedOrderBook, a C++ project created based on my findings and pe
 * [x] Basic orderbook functionalities
 * [x] Add Trade repository and order repository
 * [x] Add server functionalities
-* [ ] GFD, GTC, GTD orders
+* [x] GFD, GTC, GTD orders
 * [ ] Implement a proper way of doing orderbook snapshots
 * [ ] Perform comprehensive benchmarking
 * [ ] Add Python bindings

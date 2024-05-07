@@ -22,13 +22,19 @@ class OrderJsonOrderMapper {
             Side order_side = get_order_side(order_json["side"]);
             OrderType type = get_order_type(order_json["type"]);
             OrderParams params = get_order_params(order_json["params"]);
+            std::uint64_t expire_time = uint64_t(-1);
+
+            if((params & OrderParams::GTD) == OrderParams::GTD || (params & OrderParams::GFD) == OrderParams::GFD){
+                expire_time = order_json["expire_time"];
+            } 
+
             if (params == OrderParams::STOP){
                 double stop_price = order_json["stop_price"];
 
-                return std::make_shared<Order>(order_id, instrument, user_id,  static_cast<float>(qty), static_cast<float>(price), static_cast<float>(stop_price), order_side, params, type);    
+                return std::make_shared<Order>(order_id, instrument, user_id,  static_cast<float>(qty), static_cast<float>(price), static_cast<float>(stop_price), order_side, params, type, static_cast<time_t>(expire_time));    
             }
-
-            return std::make_shared<Order>(order_id, instrument, user_id, static_cast<float>(qty), static_cast<float>(price), order_side, params, type);    
+            
+            return std::make_shared<Order>(order_id, instrument, user_id, static_cast<float>(qty), static_cast<float>(price), order_side, params, type, static_cast<time_t>(expire_time));    
         }
 
     private:

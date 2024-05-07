@@ -85,7 +85,6 @@ TEST_F(RBTreeFixture, TestInsertRightRotation){
   ASSERT_EQ(rbtree.size(),test_numbers.size());
 }
 
-
 TEST_F(RBTreeFixture, TestInsertLeftRotation){
   auto test_numbers = {5,4,3};
 

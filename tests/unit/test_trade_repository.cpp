@@ -5,12 +5,10 @@
 class TradeRepositoryFixture : public testing::Test {
     protected:
         virtual void SetUp() {
-            _trade_repository = std::make_unique<TradeRepository>("0.0.0.0", 1, 100);
+            _trade_repository = std::make_unique<TradeRepository>("172.17.0.2",100,100);
         }
 
         virtual void TearDown(){
-             _trade_repository = std::make_unique<TradeRepository>("0.0.0.0", 1, 100);
-
             _trade_repository->run_query("TRUNCATE orderbook.trades;");
         }
 

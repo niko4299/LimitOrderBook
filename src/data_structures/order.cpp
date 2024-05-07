@@ -2,7 +2,7 @@
 #include "limit.hpp"
 
 Order::Order(std::string_view id, std::string_view instrument, std::string_view user_id, float qty, float price, Side side, OrderParams params,
-             OrderType type)
+             OrderType type, time_t expire_time)
     : _id{id}
     , _instrument{instrument}
     , _user_id{user_id}
@@ -12,10 +12,11 @@ Order::Order(std::string_view id, std::string_view instrument, std::string_view 
     , _price{price}
     , _side{side}
     , _params{params}
-    , _type{type} {}
+    , _type{type}
+    , _expire_time{expire_time} {}
 
 Order::Order(std::string_view instrument, std::string_view user_id, float qty, float price, Side side, OrderParams params,
-             OrderType type)
+             OrderType type, time_t expire_time )
     : _instrument{instrument}
     , _user_id{user_id}
     , _timestamp{time(0)}
@@ -24,11 +25,12 @@ Order::Order(std::string_view instrument, std::string_view user_id, float qty, f
     , _price{price}
     , _side{side}
     , _params{params}
-    , _type{type} {}
+    , _type{type}
+    , _expire_time{expire_time} {}
 
 // Used for stop orders
 Order::Order(std::string_view id, std::string_view instrument, std::string_view user_id, float qty, float price, float stop_price, Side side,
-             OrderParams params, OrderType type)
+             OrderParams params, OrderType type, time_t expire_time)
     : _id{id}
     , _instrument{instrument}
     , _user_id{user_id}
@@ -39,10 +41,11 @@ Order::Order(std::string_view id, std::string_view instrument, std::string_view 
     , _stop_price{stop_price}
     , _side{side}
     , _params{params}
-    , _type{type} {}
+    , _type{type}
+    , _expire_time{expire_time} {}
 
 Order::Order(std::string_view instrument, std::string_view user_id, float qty, float price, float stop_price, Side side,
-             OrderParams params, OrderType type)
+             OrderParams params, OrderType type, time_t expire_time)
     : _instrument{instrument}
     , _user_id{user_id}
     , _timestamp{time(0)}
@@ -52,8 +55,8 @@ Order::Order(std::string_view instrument, std::string_view user_id, float qty, f
     , _stop_price{stop_price}
     , _side{side}
     , _params{params}
-    , _type{type} {}
-
+    , _type{type}
+    , _expire_time{expire_time} {}
 
 void Order::set_id(std::string_view id){
     _id = id;
@@ -158,6 +161,15 @@ std::uint64_t Order::get_params_uint64(){
 Side Order::get_side(){
     return _side;
 }
+
+std::time_t Order::get_expire_time(){
+    return _expire_time;
+}
+
+void Order::set_expire_time(uint64_t time_unix){
+    _expire_time = time_unix;
+}
+
 
 
 bool Order::has_param(OrderParams param) const {

@@ -10,7 +10,14 @@ enum class OrderParams : std::uint64_t {
     GTC = 1U << 3U,  // good-till-cancelled
     GFD = 1U << 4U,  // good-for-day
     GTD = 1U << 5U,  // good-till-date
+    STOP_GTC = STOP | GTC,
+    STOP_GFD = STOP | GFD,
+    STOP_GTD = STOP | GTD,
 };
+
+inline OrderParams operator&(OrderParams lhs, OrderParams rhs) {
+    return static_cast<OrderParams>(static_cast<std::uint64_t>(lhs) & static_cast<std::uint64_t>(rhs));
+}
 
 enum class OrderType: std::uint8_t  { MARKET, LIMIT };
 
