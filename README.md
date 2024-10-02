@@ -1,6 +1,6 @@
-# UnlimitedOrderBook
+# LimitOrderBook
 
-Welcome to UnlimitedOrderBook, a C++ project created based on my findings and personal vision for the implementation of a stock exchange, with a primary focus on OrderBook functionality. This project serves as a platform for my exploration into various concepts, learning C++, and gaining insights into the workings of financial exchanges.
+Welcome to LimitOrderBook, a C++ project created based on my findings and personal vision for the implementation of exchange, with a primary focus on OrderBook functionality. This project serves as a platform for my exploration into various concepts, learning C++, and gaining insights into the workings of financial exchanges.
 
 ## Currently Supported
 
